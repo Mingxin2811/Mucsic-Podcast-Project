@@ -1,47 +1,53 @@
 # Kiến trúc backend và ranh giới hệ thống
 
-Trạng thái thiết kế: `DRAFT`. Chưa có backend thực thi trong checkout; xem [status](../project/status.md).
+Lựa chọn ngày 17/11/2026 được CONFIRMED theo [sổ DEC](../decisions/open-decisions.md#evidence-2026-11-17); chi tiết chưa chọn còn DRAFT. Chưa có backend thực thi, xem [status](../project/status.md).
 
 ## Thành phần
 
 ```mermaid
 flowchart LR
-    C[Ben su dung API] -->|HTTP| B[Backend REST du kien]
-    B --> A[Xac thuc va phan quyen]
+    C[Ben su dung API] -->|HTTPS va cookie| B[Backend REST]
+    B --> A[Xac thuc phien va quyen hien tai]
     B --> N[Nghiep vu va quyen so huu]
-    N --> D[(Database quan he)]
-    N --> M[Noi luu va phuc vu media]
-    A --> D
+    A --> D[(PostgreSQL 18)]
+    N --> D
+    N --> M[Filesystem ben vung may chu]
+    B --> E[Dich vu gui email that]
 ```
 
-Sơ đồ diễn đạt trách nhiệm dự kiến, không khẳng định đã có module/service tương ứng. Bên sử dụng API nằm ngoài phạm vi thiết kế triển khai của bộ docs.
+Sơ đồ là kiến trúc đích, không phải các service/module đã có. Bộ docs không đặc tả màn hình hoặc triển khai frontend; cùng origin/cookie là ràng buộc tích hợp HTTP.
 
-| Thành phần | Trách nhiệm dự kiến | Hiện trạng/ràng buộc |
+| Thành phần | Lựa chọn/trách nhiệm | Giới hạn |
 | --- | --- | --- |
-| HTTP backend | Nhận request, xác thực, kiểm tra dữ liệu, trả kết quả và lỗi | Định hướng Node.js/Express; toolchain còn DEC-014 |
-| Auth/quyền | Xác minh người dùng, role hiện tại và quyền sở hữu | JWT/Bcrypt được mô tả; vòng đời phiên còn DEC-006 |
-| Nghiệp vụ | Tài khoản, track, thể loại, playlist, review và moderation | Danh mục UC và API còn DRAFT |
-| Database | Lưu metadata và quan hệ | SQL PostgreSQL hiện có; hệ quản trị đích còn DEC-013 |
-| Media | Nhận file, lưu, đọc và thực thi chính sách truy cập | Local/cloud và giao thức phục vụ còn DEC-008/DEC-009 |
+| HTTP backend | Node.js 24 LTS, Express 5, JavaScript ESM/npm | Zod/Multer/jose/scrypt/node-pg-migrate/node:test/fetch/ESLint đã chọn; versions/lệnh/config còn DEC-014 |
+| Auth | JWT + auth_sessions PostgreSQL, cookie/CSRF, user/quyền DB | Cookie/header đã chọn, response/lifecycle/Origin còn DEC-017 |
+| Email | OTP đăng ký/reset qua email thật | Resend HTTPS/fetch; timeout/lỗi/wire còn DEC-003 |
+| Nghiệp vụ | Listener → hồ sơ Creator → upload/nghe/playlist/quản trị | UC và BR đã đồng bộ; hợp đồng bổ sung còn DEC-005 |
+| Database | PostgreSQL 18, pg, SQL tham số hóa, migration phiên bản | Schema đích còn DEC-022; SQL hiện có chưa sửa/chạy |
+| Media | Filesystem bền vững máy chủ; audio kiểm tra trạng thái/Range | GET/HEAD audio, single Range/no-store/cleanup đã chốt; chi tiết runtime/recovery state còn DEC-014/017/022 |
 
 ## Tổ chức mã đã có
 
-`backend/src/config`, `controllers`, `middlewares`, `routes` hiện là thư mục có `.gitkeep`. Có khung `backend/uploads/audio` và `images`. Đây là quan sát cấu trúc, không yêu cầu phải thêm service/repository layer hoặc tách microservice. Thiết kế mô tả monolith/single-host, chưa có cấu hình process/port hoạt động.
+backend/src/config, controllers, middlewares, routes và uploads hiện chỉ có .gitkeep; chưa có manifest hoặc process hoạt động. Không ép thêm layer hoặc microservice từ sơ đồ. Thiết kế cùng origin frontend/API, có HTTPS khi online; nhà cung cấp hosting/email chưa chọn. File audio local là local của máy chủ, không yêu cầu toàn bộ sản phẩm độc lập Internet.
 
 ## Luồng dữ liệu chính
 
-**Đọc kho nội dung:** request public → kiểm tra query theo hợp đồng → đọc `tracks` cùng `genres/users` cần thiết → áp dụng quy tắc hiển thị → trả metadata. Tìm kiếm, pagination và thứ tự xem [API](../api/README.md) cùng DEC-012/DEC-017/DEC-018.
+**Đăng ký:** nhận thông tin Listener → gửi OTP email thật → xác minh → kích hoạt → login riêng. User mới email_verified_at NULL; Resend/digest HMAC/5 lần gửi-email-giờ đã chọn, timeout/đăng ký lại còn DEC-003/022.
 
-**Thay đổi tài nguyên:** request có phiên → xác thực và quyền sở hữu/role → kiểm tra trạng thái tài nguyên → thay đổi dữ liệu → trả kết quả. Token có role cũ không tự chứng minh quyền hiện tại; cách kiểm tra còn DEC-006.
+**Xác thực/thay đổi:** cookie → kiểm tra chữ ký/claim, phiên và user DB → quyền hiện tại/sở hữu → cập nhật. Logout thu hồi riêng phiên; khóa/đổi mật khẩu thu hồi tất cả. Approve Creator có hiệu lực request tiếp theo. Phiên DB còn hạn qua restart; DB lỗi không cho qua xác thực.
 
-**Upload:** request có quyền → kiểm tra file và metadata → phối hợp ghi media và track → trả dữ liệu. File system và database có thể thất bại độc lập; xử lý dở dang còn DEC-009. Không tự giả định transaction DB rollback được file.
+**Đọc public:** kết hợp tracks/genres/users, chỉ trả track chưa gỡ và chủ không khóa; filter/search/pagination/sort đã chọn. Playlist loại track ẩn nhưng giữ liên kết; reorder ID hiển thị/ẩn cuối-hiện lại cuối/tập đổi 409, response/schema còn DEC-005/017/022.
 
-**Nghe audio:** đọc chi tiết track → nhận tham chiếu media → truy cập file theo hợp đồng sẽ chốt; sự kiện lượt nghe là luồng riêng. Ẩn track khỏi API không tự thu hồi đường dẫn file đã biết.
+**Upload:** quyền/CSRF → file tạm → ffprobe/FFmpeg/Sharp kiểm tra và duration ceiling → transaction kiểm tra lại → chuyển file chính → ghi track/commit → 201. UUID, temp/final cùng filesystem; commit không rõ phải đối chiếu trước dọn. Dọn startup/mỗi 30 phút theo điều kiện tuổi >24 giờ, tham chiếu và thao tác đang chạy; [media lifecycle](security-and-media.md#file-lifecycle) sở hữu chi tiết. Transaction DB không rollback filesystem.
 
-**Creator:** tiếp nhận thông tin theo luồng còn mở → pending → Admin approve/reject → cập nhật status/role → quyền mới có hiệu lực theo cơ chế phiên được chốt. Mô hình hồ sơ còn DEC-002/DEC-005/DEC-007.
+**Nghe:** metadata audioUrl → API-28 GET/API-29 HEAD audio kiểm tra trạng thái, single Range và no-store → client listenedSeconds >=10/cooldown trượt 30 phút/đếm cùng transaction/lặp 200-counted:false. Guest UUID cookie ký/login chuyển user ID có thể thêm lượt/cooldown giữ bảy ngày; chưa chứng minh nghe thật. Chặn request audio mới sau gỡ/khóa; request đang chạy có thể hoàn tất.
 
-## Các ranh giới cần xác nhận
+**Creator:** nộp hồ sơ riêng → pending không sửa → approve/reject có lịch sử → role/status được cập nhật nguyên tử theo mô hình sẽ chốt. Không dùng user.created_at thay ngày nộp.
 
-[DEC-013](../decisions/open-decisions.md#dec-013) và [DEC-014](../decisions/open-decisions.md#dec-014) chặn việc chọn dependency, kết nối và migration. [DEC-008](../decisions/open-decisions.md#dec-008)/[DEC-009](../decisions/open-decisions.md#dec-009) chặn thiết kế media. Không tự tạo cấu hình deploy, cloud service, bảng bổ sung hoặc endpoint để lấp các khoảng trống.
+## Ranh giới đặc tả còn thiếu
 
-Thiết kế dữ liệu chi tiết nằm tại [data model](data-model.md); cơ chế auth/media ở [security and media](security-and-media.md); wire contract thuộc từng [nhóm API](../api/README.md).
+Đọc [sổ DEC](../decisions/open-decisions.md) trước bootstrap. Đã chọn công cụ/auth/Resend/schema logic/search_text/cooldown/reorder tại ADR-0005. Response/field/CSRF lifecycle/conditional HTTP-ảnh/versions-limits-lệnh/schema vật lý-recovery/hosting-backup-lịch còn thiếu. Email provider đã chọn, chưa có tài khoản/key/domain xác minh. Chỉ ghi cấu hình cần có, chưa tự cài dịch vụ, tạo endpoint hoặc migration.
+
+Các ADR: [auth](../decisions/adr-0001-authentication-and-sessions.md), [media/online](../decisions/adr-0002-media-and-online-readiness.md), [nền tảng](../decisions/adr-0003-backend-and-database.md), [audio/file lifecycle](../decisions/adr-0004-audio-contract-and-file-lifecycle.md). Chi tiết dữ liệu ở [data model](data-model.md), auth/media ở [security and media](security-and-media.md), wire ở [API](../api/README.md).
+
+[ADR-0005](../decisions/adr-0005-simple-backend-contracts.md) bổ sung auth/nền tảng và thay reorder cũ; [xác nhận](../decisions/open-decisions.md#evidence-simple-2026-11-17).

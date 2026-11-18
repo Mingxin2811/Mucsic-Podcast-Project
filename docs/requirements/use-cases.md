@@ -1,53 +1,47 @@
 # Use case nghiệp vụ và trách nhiệm backend
 
-Trạng thái: `DRAFT`; triển khai `NOT_IMPLEMENTED`, kiểm chứng `NOT_RUN` theo [hiện trạng](../project/status.md). Danh mục giữ đủ UC01–UC12; phạm vi nghiệm thu và ưu tiên còn [DEC-001](../decisions/open-decisions.md#dec-001). “Must/Should được mô tả” không phải xác nhận của người giao việc.
+Lựa chọn nghiệp vụ được xác nhận ngày 17/11/2026; từng phần còn thiếu wire/validation vẫn DRAFT theo [DEC](../decisions/open-decisions.md#evidence-2026-11-17). Triển khai NOT_IMPLEMENTED, kiểm chứng NOT_RUN. Danh mục 12 UC giữ nguyên; mức cam kết MVP theo DEC-001, không suy ra đã nghiệm thu toàn bộ trải nghiệm sản phẩm.
 
 ## Danh mục
 
-| UC | Nghiệp vụ | Tác nhân | Ưu tiên được mô tả |
+| UC | Nghiệp vụ | Tác nhân | Cam kết MVP |
 | --- | --- | --- | --- |
-| [UC01](#uc01) | Đăng ký tài khoản | Guest | Must |
-| [UC02](#uc02) | Đăng nhập/đăng xuất, khôi phục mật khẩu | Guest/thành viên | Must; phạm vi mở rộng chưa chốt |
-| [UC03](#uc03) | Khám phá và Trending | Guest/thành viên | Should |
-| [UC04](#uc04) | Tìm kiếm và lọc | Guest/thành viên | Must, Must/Should hoặc Should; OPEN |
-| [UC05](#uc05) | Truy cập audio và ghi nhận lượt nghe | Guest/thành viên | Must |
-| [UC06](#uc06) | Nội dung bổ sung và khả năng nghe nâng cao | Guest/thành viên | Should |
-| [UC07](#uc07) | Playlist cá nhân | Thành viên | Must |
-| [UC08](#uc08) | Upload tác phẩm | Creator/Admin | Must |
-| [UC09](#uc09) | Quản lý tác phẩm | Creator/Admin | Must |
-| [UC10](#uc10) | Quản lý tài khoản | Admin | Must |
-| [UC11](#uc11) | Kiểm duyệt nội dung | Admin | Must |
-| [UC12](#uc12) | Xét duyệt Creator | Listener/Admin | Must |
+| [UC01](#uc01) | Đăng ký tài khoản | Guest | Bắt buộc |
+| [UC02](#uc02) | Đăng nhập/đăng xuất, khôi phục mật khẩu | Guest/thành viên | Bắt buộc; reset/đổi mật khẩu cần wire bổ sung |
+| [UC03](#uc03) | Khám phá và Trending | Guest/thành viên | Có, mức cơ bản |
+| [UC04](#uc04) | Tìm kiếm và lọc | Guest/thành viên | Bắt buộc |
+| [UC05](#uc05) | Truy cập audio và ghi nhận lượt nghe | Guest/thành viên | Bắt buộc |
+| [UC06](#uc06) | Nội dung bổ sung và khả năng nghe nâng cao | Guest/thành viên | Có, mức cơ bản |
+| [UC07](#uc07) | Playlist cá nhân | Thành viên | Bắt buộc |
+| [UC08](#uc08) | Upload tác phẩm | Creator/Admin | Bắt buộc |
+| [UC09](#uc09) | Quản lý tác phẩm | Creator/Admin | Bắt buộc |
+| [UC10](#uc10) | Quản lý tài khoản | Admin | Bắt buộc |
+| [UC11](#uc11) | Kiểm duyệt nội dung | Admin | Bắt buộc |
+| [UC12](#uc12) | Xét duyệt Creator | Listener/Admin | Bắt buộc |
 
 <a id="uc01"></a>
 
 ## UC01 Đăng ký tài khoản
 
-**Điều kiện:** Guest gửi thông tin tài khoản; email chưa được dùng. **Đầu vào:** tên 2–50 ký tự, email hợp lệ, mật khẩu ít nhất sáu ký tự theo mô tả hiện có; OTP và thông tin Creator phụ thuộc quyết định.
+**CONFIRMED:** username/email/password tạo Listener email_verified_at NULL/chưa login, email trim/lowercase UNIQUE; password 12–128 ký tự/cho khoảng trắng/không trim. Resend HTTPS/OTP digest HMAC PostgreSQL; sáu số/năm phút/một lần/ba sai, resend 60 giây hủy cũ, tối đa 5 lần gửi/email/giờ và IP limit. Mail lỗi giữ user chưa xác minh/cho resend/không tạo trùng; verify xong login riêng.
 
-**Luồng backend:** kiểm tra dữ liệu và trùng email; xác minh OTP nếu luồng đó được chốt; băm mật khẩu, tạo `users`; trả thông tin tài khoản không chứa hash. Hậu điều kiện: có tài khoản Listener; trạng thái Creator `none` hoặc `pending` phụ thuộc luồng đăng ký được xác nhận. Đăng ký không được mô tả là tự cấp JWT.
-
-**Ngoại lệ:** dữ liệu sai, email trùng; OTP sai/hết hạn nếu áp dụng; lỗi băm/DB không được báo thành công. Cơ chế nguyên tử và chuẩn hóa email chưa xác định.
-
-**Phụ thuộc:** [API-01](../api/auth.md#api-01), [BR-002](business-rules.md#br-002), [BR-003](business-rules.md#br-003); [DEC-002](../decisions/open-decisions.md#dec-002), [DEC-003](../decisions/open-decisions.md#dec-003), [DEC-017](../decisions/open-decisions.md#dec-017). Nghiệm thu: TC-01/TC-02.
+[API-01](../api/auth.md#api-01), [API-30](../api/auth.md#api-30), [API-31](../api/auth.md#api-31); BR-002/003; TC-01/02. **Còn thiếu:** DEC-003/005/017/022: IP limit/timeout/đăng ký lại/status-response/field/schema. Chưa có tài khoản/API key/domain Resend; mock không thay email thật.
 
 <a id="uc02"></a>
 
 ## UC02 Đăng nhập và quản lý phiên
 
-**Điều kiện:** tài khoản tồn tại; đăng nhập yêu cầu email/mật khẩu, thao tác có phiên yêu cầu token. **Luồng:** so khớp mật khẩu băm, kiểm tra tài khoản chưa khóa, cấp JWT được mô tả TTL 24 giờ; cung cấp thông tin tài khoản hiện tại và tiếp nhận logout. **Hậu điều kiện:** xác thực thành công hoặc kết thúc phiên theo semantics còn mở.
+**CONFIRMED:** login email/password khi verified/chưa khóa; JWT HS256/jose + auth_sessions 24 giờ/cookie soundwave_session, không refresh. Mỗi request kiểm phiên/user/quyền DB; logout riêng phiên, khóa/đổi/reset thu hồi tất cả, mở khóa login lại, approve quyền request kế tiếp. scrypt/CSRF/Origin theo BR-003/[security](../architecture/security-and-media.md).
 
-**Ngoại lệ:** thiếu thông tin, sai thông tin, bị khóa, token sai/hết hạn hoặc user không còn hợp lệ. Reset mật khẩu là nhu cầu mở rộng: xác minh chủ tài khoản, cập nhật hash, nhưng chưa có hợp đồng hoàn chỉnh. Đổi mật khẩu khi đã đăng nhập cũng chưa được đặc tả đủ.
-
-**Phụ thuộc:** [API auth](../api/auth.md), [BR-003](business-rules.md#br-003); [DEC-003](../decisions/open-decisions.md#dec-003), [DEC-005](../decisions/open-decisions.md#dec-005), [DEC-006](../decisions/open-decisions.md#dec-006). Nghiệm thu: TC-03/TC-04/TC-05.
+Reset qua Resend OTP cho user verified/chưa khóa, yêu cầu phản hồi chung; verify/reset không tự login. Đổi nhận currentPassword/newPassword. [Auth API](../api/auth.md), API-32/33/34/39; TC-03/04/05. DEC-003/005/014/017/022 còn wire/timeout/CSRF response-lifecycle/Origin thiếu/Domain/schema-lock order. DB lỗi không bỏ xác thực.
 
 <a id="uc03"></a>
 
 ## UC03 Khám phá và Trending
 
-**Điều kiện:** kho tác phẩm có thể rỗng. **Luồng:** đọc track chưa xóa mềm, trả danh sách mới theo thời gian tạo và danh sách nhiều lượt nghe nhất. Trending dự kiến tối đa 10 theo từng loại; API có query limit. **Hậu điều kiện:** dữ liệu phản ánh bộ lọc và thứ tự đã xác nhận; không thay đổi DB.
+**Luồng CONFIRMED:** đọc track chưa gỡ và chủ sở hữu không khóa; Trending theo play_count DESC, id DESC; mới phát hành created_at DESC, id DESC qua API-05 sort=newest. Đây là truy vấn sắp xếp cơ bản trong MVP, không có route new-releases riêng.
 
-**Ngoại lệ:** query sai hoặc DB lỗi; danh sách rỗng không có nghĩa lỗi. Tie-break, giới hạn query và endpoint mới phát hành chưa chốt.
+Kho rỗng là danh sách rỗng. Page/limit theo quy ước API; shape Trending khi có type query và validation chi tiết còn DEC-017. Đếm lượt nghe theo DEC-010.
 
 **Phụ thuộc:** [API-05](../api/tracks.md#api-05), [API-06](../api/tracks.md#api-06), BR-004/BR-009; [DEC-004](../decisions/open-decisions.md#dec-004), [DEC-010](../decisions/open-decisions.md#dec-010), [DEC-017](../decisions/open-decisions.md#dec-017). Nghiệm thu: TC-06.
 
@@ -55,49 +49,43 @@ Trạng thái: `DRAFT`; triển khai `NOT_IMPLEMENTED`, kiểm chứng `NOT_RUN`
 
 ## UC04 Tìm kiếm và lọc thể loại
 
-**Điều kiện:** Guest hoặc thành viên truy vấn kho tác phẩm. **Luồng:** tìm theo tiêu đề/nghệ sĩ hoặc host, kết hợp thể loại, loại music/podcast, sắp xếp và phân trang; đọc danh sách thể loại hoặc thể loại theo slug. **Hậu điều kiện:** trả dữ liệu phù hợp điều kiện, loại track đã gỡ theo quy tắc hiển thị.
+**CONFIRMED:** search_text từ title/artist/host chuẩn hóa Unicode/hoa thường/bỏ dấu/đ → d/khoảng trắng, cập nhật cùng metadata. Keyword <=100 ký tự/10 từ, mọi từ có mặt không cần đúng thứ tự; %, _ và backslash là ký tự thường, escape LIKE/SQL tham số hóa. Kết hợp genre/type/sort/pagination/loại track gỡ-chủ khóa. Admin cùng chuẩn hóa trên trường tìm theo API.
 
-**Ngoại lệ:** page/limit hoặc id sai, slug không tồn tại, không có kết quả. Không tự hiểu `ILIKE` là hỗ trợ bỏ dấu.
-
-**Phụ thuộc:** [Tracks API](../api/tracks.md), [Genres API](../api/genres.md), BR-004/BR-009; [DEC-012](../decisions/open-decisions.md#dec-012), [DEC-017](../decisions/open-decisions.md#dec-017), DEC-018. Nghiệm thu: TC-07.
+[API-05](../api/tracks.md#api-05), [Genres](../api/genres.md), API-22/26; BR-004/009; TC-07/20. DEC-012 ACCEPTED, schema/index DEC-022, protocol đo DEC-015, field/status DEC-017. Đo 1.000 track trước thêm pg_trgm nếu cần, không hứa hiệu năng.
 
 <a id="uc05"></a>
 
 ## UC05 Truy cập audio và lượt nghe
 
-**Điều kiện:** track đang được phép truy cập và file tương ứng tồn tại. **Luồng backend:** trả chi tiết/đường dẫn media, phục vụ nội dung audio theo hợp đồng media được chốt và tiếp nhận sự kiện lượt nghe hợp lệ. **Hậu điều kiện:** dữ liệu/file hợp lệ có thể được sử dụng; bộ đếm chỉ tăng theo quy tắc đã xác nhận.
+**Luồng CONFIRMED:** trả metadata/tham chiếu media → audio qua endpoint kiểm tra trạng thái track/chủ sở hữu → Range/seek. Sau gỡ hoặc khóa Creator từ chối request audio mới, request đã bắt đầu được hoàn tất. Client listenedSeconds >=10, cooldown trượt 30 phút/đếm cùng transaction. Guest UUID cookie ký/login chuyển user ID có thể thêm một lượt; lặp 200/counted:false/cooldown giữ bảy ngày; chưa chứng minh nghe thật.
 
-**Ngoại lệ:** track/file không tồn tại, bị gỡ, lỗi đọc file hoặc yêu cầu Range không được hỗ trợ theo hợp đồng đích. Backend chưa có endpoint stream được chốt. Không mô tả điều khiển phát phía ứng dụng sử dụng API trong tài liệu này.
+**Ngoại lệ:** track/file mất, bị ẩn, Range sai, lượt trùng và DB/file lỗi. GET/HEAD audio API-28/29, metadata audioUrl, single Range 200/206/416/400, multi-range full 200, HEAD không body và no-store đã chốt tại DEC-009. Track không có/gỡ/chủ khóa 404; file mất/không đọc được hoặc DB lỗi 503 theo code API-28. Conditional HTTP và mã lỗi phụ còn DEC-017; semantics đã chốt DEC-010; validation/cookie/response DEC-017 và schema DEC-022 còn chi tiết. Không coi metadata 404 đủ chứng minh URL cũ không phát được.
 
-**Phụ thuộc:** [API-07](../api/tracks.md#api-07), [API-08](../api/tracks.md#api-08), [media](../architecture/security-and-media.md); [DEC-004](../decisions/open-decisions.md#dec-004), [DEC-009](../decisions/open-decisions.md#dec-009), [DEC-010](../decisions/open-decisions.md#dec-010). Nghiệm thu: TC-08/TC-10/TC-17.
+**Phụ thuộc:** [API-07](../api/tracks.md#api-07), [API-08](../api/tracks.md#api-08), [API-28](../api/tracks.md#api-28), [API-29](../api/tracks.md#api-29), [media](../architecture/security-and-media.md); [DEC-004](../decisions/open-decisions.md#dec-004), [DEC-009](../decisions/open-decisions.md#dec-009), [DEC-010](../decisions/open-decisions.md#dec-010). Nghiệm thu: TC-08/TC-10/TC-17.
 
 <a id="uc06"></a>
 
 ## UC06 Nội dung bổ sung cho luồng nghe
 
-**Điều kiện:** track có metadata. **Luồng backend:** trả `trackType`, duration, lyrics và description/show notes. **Hậu điều kiện:** bên sử dụng API nhận đúng loại nội dung, kể cả trường không có dữ liệu. Format timestamp và biểu diễn rỗng chưa chốt.
+**CONFIRMED:** trackType/duration server/lyrics-show notes text. Music lyrics <=20.000 ký tự/description <=5.000; podcast description <=20.000/lyrics null. Field tùy chọn rỗng sau trim → null, PATCH omitted giữ nguyên, HTML 400/luôn xử lý text. [05:20] chỉ chữ, không đồng bộ/seek MVP.
 
-Shuffle/repeat, tua 15 giây và tốc độ 1x/1.25x/1.5x là khả năng sản phẩm đang được mô tả; chưa có trách nhiệm server bổ sung ngoài dữ liệu/media. Không tự tạo route riêng cho chúng hoặc thuật toán giao diện. **Ngoại lệ:** metadata thiếu, text không có cấu trúc thời gian; không khẳng định lyrics đồng bộ chỉ vì có trường TEXT.
-
-**Phụ thuộc:** [API-07](../api/tracks.md#api-07), BR-006; [DEC-021](../decisions/open-decisions.md#dec-021), DEC-009/DEC-011/DEC-017. Nghiệm thu backend: TC-08; nghiệm thu các hành vi khác chưa nằm trong bộ kiểm thử backend.
+Shuffle/repeat/tua 15 giây/tốc độ thuộc client, không API mới. [API-07](../api/tracks.md#api-07), BR-006/DEC-021 ACCEPTED; nhận diện HTML/đếm ký tự/lỗi DEC-017; TC-08 chỉ metadata/backend.
 
 <a id="uc07"></a>
 
 ## UC07 Quản lý playlist cá nhân
 
-**Điều kiện:** người dùng đã xác thực; có quyền sở hữu khi truy cập playlist cụ thể. **Luồng:** tạo/đọc/đổi tên hoặc mô tả/xóa mềm playlist, thêm track, gỡ liên kết track, đọc thứ tự phát. Nhu cầu sắp xếp lại tồn tại nhưng chưa có hợp đồng.
+**CONFIRMED:** user kể cả Admin chỉ quản lý playlist mình: tạo/đọc/PATCH/soft delete/thêm/gỡ/[API-38 reorder](../api/playlists.md#api-38). Gửi toàn bộ ID đang hiển thị; backend khóa playlist/kiểm tập, liên kết ẩn giữ ở cuối/hiện lại cuối. Tập đổi 409/tải lại; hai reorder hợp lệ tuần tự/lần hoàn tất sau quyết định cuối. Từ 1/thêm cuối/gỡ đánh lại/UNIQUE kiểm lúc commit; ẩn không hiện/không đếm nhưng giữ liên kết. Playlist xóa không đọc/sửa.
 
-**Hậu điều kiện:** thay đổi chỉ tác động thư viện đúng chủ sở hữu; xóa playlist không xóa track dùng chung; gỡ track xóa hàng liên kết. **Ngoại lệ:** tài nguyên không tồn tại, playlist người khác, thêm trùng, track bị gỡ, thay đổi đồng thời. Semantics reorder và track đã gỡ trong playlist còn mở.
-
-**Phụ thuộc:** [Playlists API](../api/playlists.md), BR-004/BR-007/BR-008; [DEC-005](../decisions/open-decisions.md#dec-005), [DEC-019](../decisions/open-decisions.md#dec-019), DEC-018/DEC-022. Nghiệm thu: TC-12/TC-13/TC-14.
+[Playlists API](../api/playlists.md), BR-004/007/008, DEC-019 ACCEPTED, TC-12/13/14/16. Response/lặp ngoài reorder/nullable DEC-005/017; schema/transaction với track-chủ đổi trạng thái DEC-022. Xóa playlist không xóa track/restore ngoài MVP.
 
 <a id="uc08"></a>
 
 ## UC08 Upload tác phẩm
 
-**Điều kiện:** Creator đã được duyệt hoặc Admin theo ma trận được chốt. **Luồng:** xác thực, nhận audio bắt buộc cùng ảnh tùy chọn, kiểm tra định dạng/dung lượng và metadata, lưu media và tạo track gắn người upload. Metadata phân biệt nhạc/podcast, lyrics/show notes. **Hậu điều kiện:** bản ghi và file nhất quán; duration có nguồn tin cậy theo quyết định.
+**Điều kiện:** Creator approved hoặc Admin không cần creator_status approved. **Luồng CONFIRMED:** nhận MP3 bắt buộc ≤30 MiB, JPG/PNG tùy chọn ≤5 MiB; gắn creator_id từ phiên; ffprobe đọc duration hữu hạn >0/ceiling INT giây, FFmpeg giải mã toàn file và Sharp kiểm tra/mã hóa cover. Lưu UUID vào vùng tạm/chính cùng filesystem; validation → transaction kiểm tra lại → chuyển file → ghi DB/commit → 201. Commit không rõ phải đối chiếu trước dọn; cleanup theo [vòng đời file](../architecture/security-and-media.md#file-lifecycle). Email/online không làm đổi nơi lưu audio sang cloud.
 
-**Ngoại lệ:** chưa xác thực/không có quyền, sai định dạng, quá giới hạn, thiếu metadata/thể loại không hợp lệ, file hoặc DB lỗi. Xử lý file còn dư và transaction chưa được thiết kế.
+**Ngoại lệ:** quyền, metadata/file sai, quá giới hạn, lỗi DB/file. File sai 400, quá dung lượng 413. Cơ chế publish/cleanup đã chọn, nhưng versions/timeout/concurrency, MIME khai báo bất nhất và dữ liệu nhận biết thao tác còn DEC-014/DEC-017/DEC-022. Chưa coi file/DB nhất quán là hành vi đã chạy.
 
 **Phụ thuộc:** [API-09](../api/tracks.md#api-09), BR-005/BR-006; [DEC-008](../decisions/open-decisions.md#dec-008), DEC-004/DEC-009/DEC-011/DEC-018/DEC-021. Nghiệm thu: TC-09.
 
@@ -105,9 +93,9 @@ Shuffle/repeat, tua 15 giây và tốc độ 1x/1.25x/1.5x là khả năng sản
 
 ## UC09 Quản lý tác phẩm đã đăng
 
-**Điều kiện:** Creator quản lý tác phẩm mình hoặc Admin có quyền theo mô tả. **Luồng:** đọc danh sách tác phẩm của mình, sửa metadata, xóa mềm tác phẩm. **Hậu điều kiện:** thay đổi đúng tài nguyên; tác phẩm đã gỡ không xuất hiện trong truy vấn public theo quy tắc. Không suy ra xóa vật lý file từ soft delete.
+**Luồng CONFIRMED:** Creator liệt kê tác phẩm mình qua /api/tracks/my-uploads, PATCH metadata/thay cover, xóa mềm; Admin sửa/gỡ mọi track. Không đổi chủ, không thay audio. Muốn bản thu khác tạo track mới; restore ngoài MVP.
 
-**Ngoại lệ:** sửa/xóa tác phẩm người khác, tài nguyên không tồn tại hoặc đã gỡ, lỗi cập nhật; thay file và khôi phục còn thiếu hợp đồng.
+**Ngoại lệ:** khác chủ, đã gỡ, file/DB lỗi; Cover mới được lưu trước, DB khóa hàng/cập nhật/commit rồi mới đưa cover cũ vào danh sách dọn; rollback giữ ảnh cũ. Không xóa ảnh mặc định/còn tham chiếu. Wire multipart/null, validation/thao tác lặp và recovery state còn DEC-014/DEC-017/DEC-022.
 
 **Phụ thuộc:** [API-10](../api/tracks.md#api-10), [API-11](../api/tracks.md#api-11), [API-12](../api/tracks.md#api-12), BR-004/BR-007; DEC-004/DEC-009/DEC-011/DEC-018. Nghiệm thu: TC-11/TC-16.
 
@@ -115,9 +103,9 @@ Shuffle/repeat, tua 15 giây và tốc độ 1x/1.25x/1.5x là khả năng sản
 
 ## UC10 Quản lý tài khoản
 
-**Điều kiện:** Admin được xác thực. **Luồng:** đọc/lọc danh sách tài khoản, khóa bằng `deleted_at`, mở khóa bằng đặt NULL. **Hậu điều kiện:** trạng thái tài khoản thay đổi; yêu cầu ngăn đăng nhập tài khoản khóa được giữ lại. Thu hồi token và lan truyền tới nội dung cần quyết định.
+**Luồng CONFIRMED:** Admin đọc/lọc user, ban đặt deleted_at và thu hồi tất cả phiên; unban đặt NULL nhưng phải login lại. Cấm khóa chính mình hoặc Admin khác. Khóa Creator tạm ẩn nội dung; mở khóa không khôi phục track đã gỡ riêng.
 
-**Ngoại lệ:** không có quyền, id không tồn tại, action sai, tự khóa tài khoản Admin đang đăng nhập. Khóa Admin khác chưa có chính sách.
+**Ngoại lệ:** sai quyền/action/id, DB lỗi hoặc cạnh tranh với login/đổi mật khẩu. Chi tiết transaction và wire/error còn DEC-017/DEC-022.
 
 **Phụ thuộc:** [API-22](../api/admin.md#api-22), [API-23](../api/admin.md#api-23), BR-001/BR-003/BR-004; [DEC-006](../decisions/open-decisions.md#dec-006), DEC-018. Nghiệm thu: TC-15.
 
@@ -125,9 +113,9 @@ Shuffle/repeat, tua 15 giây và tốc độ 1x/1.25x/1.5x là khả năng sản
 
 ## UC11 Kiểm duyệt nội dung
 
-**Điều kiện:** Admin được xác thực. **Luồng:** xem track active/deleted, lọc theo loại/từ khóa, gỡ tác phẩm vi phạm bằng soft delete. **Hậu điều kiện:** truy vấn public loại tác phẩm bị gỡ. Yêu cầu không thể truy cập media sau khi gỡ cần thiết kế riêng.
+**Luồng CONFIRMED:** Admin xem active/deleted, gỡ track bằng soft delete; public/playlist loại track đã gỡ, audio từ chối request mới, request đã bắt đầu được hoàn tất. Giữ hàng/liên kết/file; không có restore hoặc xóa vật lý qua API MVP.
 
-**Ngoại lệ:** không có quyền, tài nguyên không tồn tại, DB lỗi. Nhu cầu khôi phục được nêu nhưng chưa có hợp đồng; lý do kiểm duyệt/audit chưa được mô hình hóa.
+**DRAFT:** audio API-28/29 và no-store đã chọn; conditional HTTP, audit/lý do kiểm duyệt và thao tác lặp còn DEC-017/DEC-022; không tự thêm bảng audit.
 
 **Phụ thuộc:** [API-26](../api/admin.md#api-26), [API-27](../api/admin.md#api-27), BR-004; [DEC-005](../decisions/open-decisions.md#dec-005), DEC-009/DEC-018/DEC-022. Nghiệm thu: TC-16/TC-17.
 
@@ -135,8 +123,6 @@ Shuffle/repeat, tua 15 giây và tốc độ 1x/1.25x/1.5x là khả năng sản
 
 ## UC12 Xét duyệt Creator
 
-**Điều kiện:** có tài khoản hợp lệ và yêu cầu đăng ký theo luồng được chốt; Admin có quyền review. **Luồng:** tiếp nhận hồ sơ hoặc thông tin đăng ký, đưa vào `pending`; Admin đọc hồ sơ chờ, chọn approve/reject. Approve được mô tả đổi role thành `creator`, status `approved`; reject đặt `rejected`, không tự cấp quyền upload.
+**CONFIRMED:** Listener verified/login nộp [API-35](../api/creator-applications.md#api-35), một pending/user/pending bất biến. Admin duyệt application ID qua [API-25](../api/admin.md#api-25)/khóa hàng hồ sơ; approve role creator/approved, reject không upload. Rejected POST hồ sơ mới/giữ lịch sử qua [API-36](../api/creator-applications.md#api-36); ngày nộp khác user.created_at, có reviewer/ngày/lý do. Kênh duyệt sửa tên/bio [API-37](../api/creator-applications.md#api-37)/không đổi quyền. users.role nguồn quyền/creatorStatus suy ra hồ sơ/quyền request kế tiếp.
 
-**Hậu điều kiện:** kết quả xét duyệt nhất quán; quyền mới có hiệu lực theo vòng đời phiên sẽ chốt. **Ngoại lệ:** hồ sơ không tồn tại/đã xử lý, decision sai, tài khoản khóa, review đồng thời hoặc gửi lại sau từ chối. Lý do từ chối/ngày gửi/lịch sử chưa có cấu trúc đầy đủ.
-
-**Phụ thuộc:** [API-24](../api/admin.md#api-24), [API-25](../api/admin.md#api-25), BR-002; [DEC-002](../decisions/open-decisions.md#dec-002), DEC-005/DEC-006/DEC-007/DEC-018/DEC-022. Nghiệm thu: TC-18.
+BR-002, DEC-002/007/018 đã chốt; DEC-005/017/022 còn field/body/response/mapping trạng thái-kênh/transaction cạnh tranh; TC-18.

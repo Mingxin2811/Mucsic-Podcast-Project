@@ -1,6 +1,12 @@
 # Quản lý dự án
 
-Trạng thái: `DRAFT`. Các số liệu dưới đây là kế hoạch được ghi nhận, chưa phải baseline đã được nghiệm thu. Xung đột quản trị được quản lý tại [DEC-016](../decisions/open-decisions.md#dec-016).
+Cập nhật 17/11/2026: cách giao việc/phạm vi bên dưới có phần CONFIRMED; các số liệu lịch, giờ và chi phí cũ là ước lượng lịch sử, chưa là baseline đã được nghiệm thu. Xung đột quản trị được quản lý tại [DEC-016](../decisions/open-decisions.md#dec-016).
+
+## Cách quản lý đã xác nhận ngày 17/11/2026
+
+Theo [DEC-016](../decisions/open-decisions.md#dec-016), chọn Trello; mỗi việc có người phụ trách, đầu ra và tiêu chí hoàn thành. Dùng phạm vi MVP đã chọn tại [DEC-001](../decisions/open-decisions.md#dec-001). Đích sẵn sàng online, OTP email thật, nhạc/podcast local máy chủ; không mặc định offline hoặc chi phí hosting/email bằng 0.
+
+Cần lập lại lịch theo deadline/nguồn lực thực; xác nhận riêng người chốt nghiệp vụ, kỹ thuật và nghiệm thu. Chưa có tên/ngày mới, giờ cam kết hoặc baseline chi phí/rủi ro; không tự gán từ vai trò dưới đây. Các quyết định docs ngày 17/11 do người dùng trong phiên xác nhận, không chứng minh tổ chức đã bổ nhiệm vai trò lâu dài. Chưa thao tác Trello hoặc cấu hình bảo vệ nhánh.
 
 ## Điều lệ và nhân sự dự kiến
 
@@ -33,7 +39,7 @@ RACI đang được mô tả: PM A/R cho khảo sát và kế hoạch, A cho ki�
 
 Bộ bàn giao dự kiến: mã nguồn, database và demo media hợp lệ, tài liệu yêu cầu/thiết kế/quản lý, kết quả kiểm thử, báo cáo và slide. Không có bằng chứng các hạng mục này đã hoàn tất; xem [status](status.md).
 
-## Lịch dự kiến
+## Lịch cũ — ước lượng lịch sử, chưa là baseline mới
 
 Mốc ngày được nêu: 17/09/2026 bắt đầu, 26/11/2026 hoàn thành tạm tính. Chưa dùng ngày hiện tại để tự chuyển sprint hoặc kết luận trễ hạn.
 
@@ -46,7 +52,7 @@ Mốc ngày được nêu: 17/09/2026 bắt đầu, 26/11/2026 hoàn thành tạ
 
 Chuỗi phụ thuộc từng được nêu: SRS → DB → Auth → Upload → Audio → Search → Playlist/Admin → Test cases → Testing → bàn giao. Lịch các tác vụ có gối đầu; duration, quan hệ FS/SS và float chưa đủ để chứng minh đường găng 10 tuần. Không dùng con số float 0 hoặc “70 ngày làm việc” làm ràng buộc đã được xác nhận.
 
-## Nguồn lực và chi phí
+## Nguồn lực và chi phí cũ — ước lượng lịch sử
 
 Có giả định 8–10 giờ/người/tuần và phép tính minh họa ba người × 10 tuần × 10 giờ = 300 giờ. Mô tả chi phí gồm tiền mặt dự kiến 0 đồng và nhân công chưa định giá; một ước lượng khác quy đổi 50.000 đồng/giờ thành 15.000.000 đồng học thuật.
 
@@ -67,11 +73,15 @@ Không xem số quy đổi là tiền đã chi hoặc ngân sách được duy�
 | R02 | File audio lớn ảnh hưởng hiệu năng | 2 × 3 = 6 | Kiểm tra dung lượng, dùng bộ demo phù hợp, kiểm chứng phục vụ media |
 | R03 | Xung đột mã nguồn khi tích hợp | 2 × 2 = 4 | Thay đổi tập trung, review trước tích hợp |
 | R04 | Quyền sử dụng nội dung demo không rõ | 1 × 2 = 2 | Xác nhận giấy phép và bộ media ở DEC-020 |
+| R05 | Filesystem máy chủ mất dữ liệu/hết dung lượng qua deploy | Chưa chấm điểm | Volume bền vững và backup/restore, DEC-009/014/016 |
+| R06 | Email OTP không tới người dùng/provider gián đoạn | Chưa chấm điểm | Resend HTTPS đã chọn; thiết lập domain/key, lỗi/resend và kiểm chứng email thật DEC-003/014 |
 
 Thang P/I 1–3 và phân loại điểm 6 chưa nhất quán; giữ điểm đề xuất, chưa chốt mức ưu tiên rủi ro. Khả năng phát sinh, chủ sở hữu và ngày rà soát cần cập nhật bằng bằng chứng thực tế.
 
 ## Truyền thông và hoàn thành công việc
 
-Có kế hoạch trao đổi hàng tuần qua Zalo, sprint planning/review và kiểm thử chéo. Công cụ tiến độ chưa thống nhất giữa Trello và GitHub Projects. Repo này không chứng minh bảng công việc hay quy tắc bảo vệ nhánh đã được thiết lập.
+Có kế hoạch trao đổi hàng tuần qua Zalo, sprint planning/review và kiểm thử chéo. Công cụ đã chọn là Trello theo DEC-016; GitHub Projects không là công cụ tiến độ song song được chọn. Repo này không chứng minh bảng công việc hay quy tắc bảo vệ nhánh đã được thiết lập.
 
-Tiêu chí hoàn thành dự kiến: đúng phạm vi đã xác nhận, có kiểm thử phù hợp, không còn lỗi Critical/High chưa xử lý, có review và bằng chứng nghiệm thu. Mức độ lỗi và người nghiệm thu còn mở. [Workflow](../development/workflow.md) mô tả cách giao việc; [acceptance](../testing/acceptance.md) giữ các kịch bản, không ghi sẵn Pass.
+Tiêu chí đã chọn: đúng phạm vi cam kết, kiểm thử phù hợp, không còn Critical/High, có review/bằng chứng và một lần thử backup/restore thành công. Định nghĩa severity, protocol và người nghiệm thu còn DEC-015/DEC-016. [Workflow](../development/workflow.md) mô tả cách giao việc; [acceptance](../testing/acceptance.md) giữ các kịch bản, không ghi sẵn Pass.
+
+Đợt [đơn giản hóa 17/11](../decisions/open-decisions.md#evidence-simple-2026-11-17) chọn công cụ và thứ tự triển khai, không bổ nhiệm RACI/đổi deadline/duyệt chi phí. Resend cần tài khoản/key/domain gửi xác minh chưa có; không coi chọn provider là đã có ngân sách/online hoặc nghiệm thu.

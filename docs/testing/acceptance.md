@@ -1,6 +1,6 @@
 # Kịch bản nghiệm thu backend
 
-Trạng thái tất cả kịch bản: **NOT_RUN**. Expected dưới đây diễn đạt thiết kế `DRAFT`; chỉ dùng làm hợp đồng thực thi sau khi các quyết định liên quan được xác nhận. Không có lần chạy API/SQL/media nào được ghi nhận ở trang này. Cách ghi kết quả ở [strategy](strategy.md).
+Trạng thái tất cả kịch bản: **NOT_RUN**. Đồng bộ ngày 17/11/2026: expected nghiệp vụ đã xác nhận được ghi riêng với wire/protocol còn thiếu. Chưa có ứng dụng hoặc runner; khi thực thi phần thiếu expected sẽ ghi BLOCKED theo DEC, không chọn đáp án bằng test. Không có lần chạy API/SQL/media nào được ghi nhận ở trang này. Cách ghi kết quả ở [strategy](strategy.md).
 
 ## Danh mục
 
@@ -32,166 +32,294 @@ Trạng thái tất cả kịch bản: **NOT_RUN**. Expected dưới đây diễ
 
 ## TC-01 Đăng ký và trùng email
 
-**Đầu vào:** thông tin hợp lệ với email chưa có; tên dưới 2/trên 50 ký tự, email sai, mật khẩu dưới sáu ký tự và email đã tồn tại. **Thao tác:** gọi [API-01](../api/auth.md#api-01); đọc user được tạo trong DB thử nghiệm.
+Trạng thái: `NOT_RUN`.
 
-**Expected dự kiến:** chỉ dữ liệu hợp lệ được tạo; password_hash khác plaintext và kiểm tra được bằng thuật toán được chọn; response không có hash; input sai báo 400, trùng email báo 409 theo mô tả. Đối chiếu trạng thái Creator theo luồng đã chốt, không tự chọn `none` hay `pending` cho trường hợp xung đột. **Phụ thuộc:** DEC-002/DEC-003/DEC-014/DEC-017/DEC-022. **Bằng chứng:** request đã loại mật khẩu, response, số hàng và kiểm tra hash không lộ hash thật.
+**Đầu vào và thao tác:** API-01, API-30/31; email trùng/khác hoa thường, password 11/12/128/129 ký tự/có khoảng trắng, gửi mail lỗi/đăng ký lại.
+
+**Expected theo lựa chọn đã xác nhận:** User mới email_verified_at NULL, login bị chặn trước verify; Resend thật/không tự login sau verify. Email trim/lowercase, password 12–128/không trim, không lộ hash/OTP/JWT, gửi lỗi giữ unverified/không tạo trùng.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-003/005/017/022: đăng ký lại/timeout/status-response/username validation/schema. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Request đã che password, user trước-sau verify/Resend mail đã che mã; không coi response tiếp nhận là active.
 
 <a id="tc-02"></a>
 
 ## TC-02 OTP đăng ký
 
-**Đầu vào:** email, mã đúng, mã sai, hết hạn, dùng lại và nhiều lần yêu cầu. **Thao tác:** sau khi chốt hợp đồng OTP, kiểm tra gửi/xác minh và đăng ký theo từng trường hợp.
+Trạng thái: `NOT_RUN`.
 
-**Expected:** xác định theo [DEC-003](../decisions/open-decisions.md#dec-003); thiết kế đang nêu sáu số/năm phút và hủy sau ba lần sai nhưng chưa được xác nhận đồng bộ. Chưa có route/body để gửi thử. **Phụ thuộc:** DEC-002/DEC-003/DEC-017. **Bằng chứng cần có:** thời điểm, kết quả từng lần, thay đổi trạng thái và việc mã đã dùng; không lưu OTP thật vào log bàn giao.
+**Đầu vào và thao tác:** Resend thực, verify {email,otp}, OTP đúng/sai 1–3/hết năm phút/dùng lại, resend trước-sau 60 giây/mã cũ; sáu lần gửi/email/giờ, concurrency/provider timeout.
+
+**Expected theo lựa chọn đã xác nhận:** Sáu số/một lần/năm phút/ba sai, resend hủy cũ/cooldown 60 giây/giới hạn 5 lần gửi-email-giờ. PostgreSQL lưu HMAC digest/secret riêng/số thử-thời hạn; lỗi mail giữ unverified/cho resend/không tạo trùng.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-003/005/017/022: IP threshold/cửa sổ-count gửi/timeout trạng thái mã/response/atomic update. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Clock/counters/user/OTP đã che trước-sau, email thật đã che mã, không dùng mock làm bằng chứng gửi mail thật.
 
 <a id="tc-03"></a>
 
 ## TC-03 Login và tài khoản hiện tại
 
-**Đầu vào:** tài khoản hoạt động với mật khẩu đúng/sai, thiếu trường, tài khoản bị khóa và token hợp lệ. **Thao tác:** [API-02](../api/auth.md#api-02), rồi [API-04](../api/auth.md#api-04).
+Trạng thái: `NOT_RUN`.
 
-**Expected dự kiến:** đúng tài khoản cấp token và trả đúng user không có hash; sai thông tin 401, thiếu trường 400, login user khóa 403. API me với token lỗi có 401, user không tồn tại/khóa được mô tả 404; giữ khác biệt này cho review hợp đồng, không tự sửa test. **Phụ thuộc:** DEC-006/DEC-014/DEC-017/DEC-020. **Bằng chứng:** response đã loại token và đối chiếu user hiện tại.
+**Đầu vào và thao tác:** API-02/04/39, verified/unverified/banned, password đúng-sai/có khoảng trắng, hai login, HTTP local và HTTPS online.
+
+**Expected theo lựa chọn đã xác nhận:** Chỉ verified/chưa khóa login; scrypt async/salt riêng/thông số lưu đúng lựa chọn, JWT HS256/jose/24 giờ tuyệt đối, soundwave_session/HttpOnly/SameSite=Lax/path=/; Secure online, chỉ tắt riêng local. Hai phiên độc lập/me quyền DB, không JWT JSON; API-39 token gắn phiên.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-003/014/017/020/022: hash format/key lifecycle/Domain/CSRF response/Origin policy và seed. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Version/config đã che secret, hash verification không in hash, cookie properties, phiên/expires_at và response.
 
 <a id="tc-04"></a>
 
 ## TC-04 Khôi phục mật khẩu
 
-**Đầu vào:** tài khoản tồn tại/không tồn tại/bị khóa, OTP đúng/sai/hết hạn và mật khẩu mới. **Thao tác:** dùng hợp đồng reset sẽ được chốt, thử đăng nhập bằng mật khẩu cũ/mới và token trước đó.
+Trạng thái: `NOT_RUN`.
 
-**Expected:** chưa chốt route, response, trường hợp user khóa và token cũ; không có request chạy sẵn. Khi được xác nhận, mật khẩu phải đổi qua hash, không lưu plaintext. **Phụ thuộc:** DEC-003/DEC-005/DEC-006/DEC-017. **Bằng chứng:** thay đổi đăng nhập và trạng thái phiên, không ghi mật khẩu/token thật.
+**Đầu vào và thao tác:** API-32/33/34: email tồn tại/không/locked/unverified, OTP đúng-sai-hết hạn-resend, currentPassword sai/đúng, hai phiên; reset {email,otp,newPassword}.
+
+**Expected theo lựa chọn đã xác nhận:** Reset chỉ verified/chưa khóa; yêu cầu phản hồi chung không tiết lộ tồn tại. Password 12–128/không trim; hash scrypt/thu hồi mọi phiên nguyên tử, không tự login; password cũ thất bại/mới login riêng. Đổi cần currentPassword/newPassword.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-003/005/014/017/022: response/status/provider error/timeout/hash format và race. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Password/OTP/hash được che, response email chung/user-phiên trước-sau, kiểm login riêng sau reset.
 
 <a id="tc-05"></a>
 
 ## TC-05 Token và vòng đời phiên
 
-**Đầu vào:** token bị sửa/hết hạn, token trước logout, trước khóa/mở khóa, trước reset và trước approve Creator. **Thao tác:** gọi [API-03](../api/auth.md#api-03), [API-23](../api/admin.md#api-23) hoặc thao tác lifecycle tương ứng, rồi protected request.
+Trạng thái: `NOT_RUN`.
 
-**Expected dự kiến:** token không hợp lệ không truy cập được protected API. Expected token cũ ở từng sự kiện phải lấy từ [DEC-006](../decisions/open-decisions.md#dec-006), chưa tự chọn invalidation hay chờ hết TTL. **Phụ thuộc:** DEC-003/DEC-006/DEC-017/DEC-018. **Bằng chứng:** thứ tự sự kiện, trạng thái user, kết quả trước/sau đã loại token.
+**Đầu vào và thao tác:** JWT sai chữ ký/claim/thuật toán, thiếu-hết hạn-thu hồi cookie, logout một phiên/ban-unban/password/approve/restart/DB lỗi; API-39/X-CSRF-Token đúng-sai-thiếu/Origin.
+
+**Expected theo lựa chọn đã xác nhận:** HS256/secret >=32 byte, phiên 24 giờ không refresh; cookie đã chọn; protected mutation token ngẫu nhiên gắn phiên/Origin; auth trước login JSON/Origin. Logout riêng phiên 204, ban/đổi-reset tất cả, unban không hồi sinh, approve quyền kế tiếp, DB lỗi không bỏ kiểm tra, phiên bền restart/thu hồi-hết hạn 401.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-014/017/022: key lifecycle/CSRF response-cấp lại-thu hồi/Origin thiếu-phạm vi public mutation/lock order/status dịch vụ. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Thứ tự commit/request/phiên-user trước-sau/headers che giá trị/clock-DB failure có điều khiển; không tuyên bố hủy request đã nhận.
 
 <a id="tc-06"></a>
 
 ## TC-06 Trending và mới phát hành
 
-**Đầu vào:** track music/podcast có lượt nghe/ngày tạo khác nhau, bằng nhau và track đã gỡ; kho rỗng. **Thao tác:** [API-05](../api/tracks.md#api-05), [API-06](../api/tracks.md#api-06).
+Trạng thái: `NOT_RUN`.
 
-**Expected dự kiến:** loại track bị gỡ, sort theo play_count hoặc created_at đúng thiết kế; phản ánh type/limit theo hợp đồng. Tie-break, shape khi chọn type và route new-releases chưa chốt. **Phụ thuộc:** DEC-004/DEC-010/DEC-017/DEC-018. **Bằng chứng:** fixture kiểm soát thứ tự và danh sách thực trả, không chỉ kiểm tra độ dài.
+**Đầu vào và thao tác:** Music/podcast có play_count/created_at khác nhau và bằng nhau, track gỡ/chủ khóa, kho rỗng; API-05 sort và API-06.
+
+**Expected theo lựa chọn đã xác nhận:** Trending play_count DESC,id DESC; newest created_at DESC,id DESC; loại track gỡ/chủ khóa. Dùng API-05 sort=newest, không route new-releases riêng; pagination chung.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-017: shape khi lọc type Trending, validation trường cụ thể. Tra [sổ DEC](../decisions/open-decisions.md) và [danh mục API](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Fixture kiểm soát thứ tự/ẩn và danh sách thực trả, ranh giới trang; không chỉ kiểm độ dài.
 
 <a id="tc-07"></a>
 
 ## TC-07 Tìm kiếm và thể loại
 
-**Đầu vào:** keyword theo title/artist, chữ hoa/thường, có/không dấu, genreId/type, page/limit hợp lệ và sai, slug có/không tồn tại. **Thao tác:** [API-05](../api/tracks.md#api-05), [API-13](../api/genres.md#api-13), [API-14](../api/genres.md#api-14).
+Trạng thái: `NOT_RUN`.
 
-**Expected dự kiến:** kết hợp điều kiện đúng, không trả track bị gỡ; slug không tồn tại 404; page/limit sai ở API-05 được mô tả 400. Expected bỏ dấu và phân trang toàn cục theo DEC-012/DEC-017, không suy ra từ ILIKE. **Bằng chứng:** cặp query/fixture/result, kể cả rỗng và qua ranh giới trang. **Phụ thuộc:** DEC-012/DEC-017/DEC-018.
+**Đầu vào và thao tác:** API-05/13/14/22/26: Son Tung/Sơn Tùng/đ-Đ/Unicode tổ hợp-tách/khoảng trắng, từ đảo thứ tự, %, _ và backslash; keyword 100/101 ký tự và 10/11 từ; genre/type/sort/pagination.
+
+**Expected theo lựa chọn đã xác nhận:** search_text cùng metadata, Unicode/hoa thường/bỏ dấu/đ → d/gom khoảng trắng. Mọi từ phải có không cần thứ tự; ký tự wildcard được hiểu literal, SQL tham số hóa. Keyword <=100/10; unknown field-query 400; admin cùng chuẩn hóa đúng trường. Loại track gỡ/chủ khóa/sort ổn định/pagination chung.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-017: đếm ký tự/validation chi tiết/Trending type shape; DEC-022 migration-index, DEC-015 benchmark. DEC-012 semantics đã ACCEPTED. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Cặp input-normalized-query-result, cập nhật metadata rồi search, boundary/literal injection; không suy ra tốc độ từ cấu trúc index.
 
 <a id="tc-08"></a>
 
 ## TC-08 Chi tiết tác phẩm, metadata và media
 
-**Đầu vào:** music/podcast có hoặc thiếu lyrics/description, track bị gỡ, id sai, file tồn tại/thiếu. **Thao tác:** [API-07](../api/tracks.md#api-07) và giao thức media được chốt.
+Trạng thái: `NOT_RUN`.
 
-**Expected dự kiến:** trả đúng trackType, duration, metadata và quan hệ; id sai 400, track không có/đã gỡ 404 theo mô tả. Xử lý nullable/timestamp và thiếu file theo DEC-009/DEC-017/DEC-021; chưa kiểm tra hành vi nghe ngoài backend. **Bằng chứng:** response metadata và HTTP media thực tế. **Phụ thuộc:** DEC-009/DEC-011/DEC-017/DEC-018/DEC-021.
+**Đầu vào và thao tác:** Music/podcast, duration CBR/VBR hợp lệ/lỗi; JSON API-05/07/09; GET API-28 full/single Range/multi-range; HEAD API-29 có/không Range; track gỡ/chủ khóa/file mất.
+
+**Expected theo lựa chọn đã xác nhận:** Metadata dùng audioUrl /api/tracks/:id/audio, không audioFilePath hoặc path thật. Duration ffprobe hữu hạn >0, ceiling INT giây (243,7 →244), làm tròn không là bảo đảm độ chính xác probe; kiểm chứng CBR/VBR riêng. MP3 được kiểm tra định dạng/codec và giải mã toàn file, plain text không đồng bộ; music lyrics 20.000/description 5.000 ký tự, podcast description 20.000/lyrics null, text rỗng sau trim null/omitted giữ nguyên/HTML 400. GET full 200, single Range 206 đúng byte; multi-range hợp lệ full 200. HEAD bỏ Range và không body cả lỗi, header kích thước toàn file khi 200. no-store trên response audio.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-014/015/017/022: versions/limits, độ chính xác probe/đo nghe, Range/conditional HTTP/ảnh, nhận diện HTML/đếm ký tự và recovery state. DEC-021 text policy đã chốt. Không dùng server thời lượng giả để gọi PASS duration. Tra [sổ DEC](../decisions/open-decisions.md) và [API-28/29](../api/tracks.md#api-28); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Đối chiếu JSON/audioUrl/header/byte; tách JSON lỗi trước stream, không chèn JSON vào stream đã mở; toàn bộ tình huống đều NOT_RUN cho tới khi có runtime.
 
 <a id="tc-09"></a>
 
 ## TC-09 Upload và nhất quán file với database
 
-**Đầu vào:** Creator hợp lệ, Listener, Admin, MP3 hợp lệ, thiếu audio, sai nội dung/đuôi, vượt giới hạn, cover thiếu/hợp lệ/quá giới hạn; metadata sai. **Thao tác:** [API-09](../api/tracks.md#api-09); gây lỗi lưu file và lỗi DB trong môi trường thử nghiệm khi cơ chế lỗi đã xác định.
+Trạng thái: `NOT_RUN`.
 
-**Expected dự kiến:** gắn đúng creator_id, không cho body giả mạo sở hữu; Listener bị từ chối; 400/401/403/413 theo nhánh đã mô tả. Không có trạng thái thành công giả hoặc dữ liệu/file còn dư trái chính sách được chốt. Admin status, MIME/MB, duration và rollback chưa có expected cuối. **Phụ thuộc:** DEC-004/DEC-008/DEC-009/DEC-011/DEC-017/DEC-018/DEC-021/DEC-022. **Bằng chứng:** request, phản hồi, thay đổi file/hàng DB và kết quả sau lỗi.
+**Đầu vào và thao tác:** Creator approved/pending/Listener/Admin; MP3 ≤30 MiB và vượt, giả đuôi/sai codec/giải mã lỗi; cover JPG/PNG hợp lệ/sai/vượt 5 MiB; duration client giả; lỗi file/DB tại từng bước, COMMIT chắc rollback/mất kết nối/response mất.
+
+**Expected theo lựa chọn đã xác nhận:** Server sinh UUID, không dùng tên client; ffprobe kiểm tra MP3 và duration hữu hạn >0/ceil, FFmpeg giải mã toàn file, Sharp đọc/mã hóa ảnh. File sai 400, quá dung lượng 413; sai công cụ/thiếu binary không được mặc định coi input sai. Temp/final cùng filesystem, auth/quyền/CSRF trước file; validation → transaction kiểm tra lại → chuyển file → ghi track/commit → 201. Rollback chắc chắn dọn mới, commit không rõ phải đối chiếu trước xóa. Commit rồi response mất không được xóa file đã được tham chiếu.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-014/017/022: versions, timeout/concurrency và cấu hình ảnh, error code công cụ/validation, retry upload, trạng thái active/đối chiếu commit/danh sách dọn. Không tự chọn queue hoặc đáp án retry idempotency trong test. Tra [sổ DEC](../decisions/open-decisions.md) và [API-28/29](../api/tracks.md#api-28); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** File/hàng DB trước sau, failpoint ở move/insert/commit/response, đầu ra probe/decode đã loại đường dẫn nhạy cảm; temp/final không bị nhầm với audio public; dữ liệu thử dùng riêng.
 
 <a id="tc-10"></a>
 
 ## TC-10 Ghi nhận lượt nghe
 
-**Đầu vào:** lượt đúng điều kiện, phát ngắn, lặp lại, đồng thời, id không tồn tại/track bị gỡ. **Thao tác:** [API-08](../api/tracks.md#api-08) theo method/path sẽ chốt.
+Trạng thái: `NOT_RUN`.
 
-**Expected:** lượng tăng phải khớp số lượt hợp lệ theo DEC-010; chưa chọn tăng ngay hoặc sau 10 giây. Kiểm tra trạng thái cuối và số cập nhật dưới đồng thời; không chỉ kiểm tra HTTP thành công. **Phụ thuộc:** DEC-004/DEC-009/DEC-010/DEC-017. **Bằng chứng:** play_count trước/sau và thứ tự request.
+**Đầu vào và thao tác:** API-08 listenedSeconds dưới/đủ 10/giả, trượt trước-đúng-sau 30 phút, lặp/đồng thời; user/Guest cookie ký/Guest→login, track gỡ/chủ khóa và dọn cooldown bảy ngày.
+
+**Expected theo lựa chọn đã xác nhận:** Client >=10/server kiểm input-cooldown, chưa chứng minh nghe thật. Một lượt/track/định danh trong 30 phút từ lượt gần nhất, UUID Guest server cấp/cookie ký. Login chuyển user ID có thể thêm lượt; dedup/tăng đếm cùng transaction, lặp 200/counted:false; cooldown giữ bảy ngày, GET/HEAD không tăng.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-014/017/022: cookie Guest/validation numeric-response phần còn lại/thuật toán cạnh tranh/schema và lịch dọn. DEC-010 semantics đã ACCEPTED. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Clock điều khiển/last-counted/count trước-sau/hai request cùng lúc chỉ một lượt/cookie giả bị xử lý theo contract khi được chốt.
 
 <a id="tc-11"></a>
 
 ## TC-11 Quyền quản lý tác phẩm
 
-**Đầu vào:** Creator A/B và Admin, track của từng Creator, metadata hợp lệ/sai, track đã gỡ. **Thao tác:** [API-10](../api/tracks.md#api-10), [API-11](../api/tracks.md#api-11), [API-12](../api/tracks.md#api-12).
+Trạng thái: `NOT_RUN`.
 
-**Expected dự kiến:** Creator chỉ sửa/gỡ và liệt kê tác phẩm của mình; truy cập chéo bị từ chối và không thay dữ liệu; Admin sửa/gỡ theo quyền được mô tả. Khả năng thay file, list cá nhân của Admin và cập nhật track đã gỡ còn mở. **Phụ thuộc:** DEC-004/DEC-006/DEC-009/DEC-011/DEC-017/DEC-018/DEC-021. **Bằng chứng:** response và DB/file trước/sau.
+**Đầu vào và thao tác:** Creator A/B/Admin, API-10 PATCH metadata/cover, API-11/12; omitted/null, đổi chủ/audio; cover mới sai/lưu lỗi/rollback/commit không rõ và hai cập nhật cover đồng thời.
+
+**Expected theo lựa chọn đã xác nhận:** Creator chỉ sửa/gỡ của mình, Admin mọi track; my-uploads của chính user. Không đổi chủ/thay audio; omitted giữ nguyên, null chỉ trường cho phép. Cover kiểm tra/lưu tên mới → transaction khóa hàng → cập nhật/commit → ảnh cũ vào danh sách dọn. Rollback giữ ảnh cũ, dọn ảnh mới khi đã rõ không commit/tham chiếu. Không xóa ảnh mặc định/còn tham chiếu hoặc ảnh cuối đang dùng sau hai cập nhật. Gỡ 204 không body, giữ audio/link.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-014/017/022: cấu hình ảnh/versions, nullable/remove cover/multipart wire, lỗi lặp và cơ chế dọn/đối chiếu/khóa chống race. Không tự cấp route cover. Tra [sổ DEC](../decisions/open-decisions.md) và [API-28/29](../api/tracks.md#api-28); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** HTTP/DB/file trước sau, hai transaction có interleaving điều khiển, danh sách dọn và kết quả cuối sau job; thử default/shared cover và COMMIT không rõ.
 
 <a id="tc-12"></a>
 
 ## TC-12 Vòng đời playlist
 
-**Đầu vào:** Listener hoạt động, tên hợp lệ/rỗng/quá dài, playlist đã tạo và đã xóa. **Thao tác:** [API-15](../api/playlists.md#api-15) đến [API-19](../api/playlists.md#api-19).
+Trạng thái: `NOT_RUN`.
 
-**Expected dự kiến:** tạo gắn user xác thực; đọc/đổi title/description đúng; xóa mềm loại khỏi danh sách; không xóa track dùng chung. PUT omitted/null và thao tác lại trên playlist đã xóa phải chốt trước khi đặt expected. **Phụ thuộc:** DEC-017/DEC-018/DEC-019/DEC-022. **Bằng chứng:** luồng tạo/đọc/sửa/xóa và hàng DB.
+**Đầu vào và thao tác:** User/playlist hoạt động, tên hợp lệ/sai, PATCH omitted/null, xóa mềm và thao tác sau xóa; API-15–API-19.
+
+**Expected theo lựa chọn đã xác nhận:** Tạo 201 gắn user, đọc/sửa 200, xóa 204 không body; không sửa playlist đã xóa; không xóa track dùng chung; restore ngoài MVP.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-017/019/022: nullable field cụ thể/lỗi lặp/validation cuối; PATCH rỗng 400 đã chốt. Tra [sổ DEC](../decisions/open-decisions.md) và [danh mục API](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Luồng tạo/đọc/PATCH/xóa và hàng DB, xác nhận track/liên kết giữ nguyên khi soft delete.
 
 <a id="tc-13"></a>
 
 ## TC-13 Thành viên và thứ tự playlist
 
-**Đầu vào:** playlist có nhiều track, thêm trùng, track không tồn tại/đã gỡ, thêm đồng thời và yêu cầu reorder. **Thao tác:** [API-20](../api/playlists.md#api-20), [API-21](../api/playlists.md#api-21), API-17; reorder chỉ chạy khi có hợp đồng.
+Trạng thái: `NOT_RUN`.
 
-**Expected dự kiến:** PK không tạo hai cặp giống nhau; thêm trùng được mô tả 400; gỡ liên kết không xóa track. Thứ tự, khoảng trống, đồng thời và reorder theo DEC-019/DEC-022, không mặc định MAX+1 là đủ. **Phụ thuộc:** DEC-005/DEC-017/DEC-019/DEC-022. **Bằng chứng:** tập liên kết/thứ tự trước/sau, request được điều khiển đồng thời khi cần.
+**Đầu vào và thao tác:** API-17/20/21/38, playlist có track hiển thị-ẩn, thêm-gỡ-trùng/reorder {trackIds}, hai reorder hợp lệ; tập thay đổi trước kiểm tra; unhide và commit constraint.
+
+**Expected theo lựa chọn đã xác nhận:** Chỉ gửi mọi ID hiển thị/khóa playlist/kiểm đúng tập. Ẩn giữ liên kết ở cuối/hiện lại cuối/không count/đọc liên tục. Tập đổi 409/tải lại; hai reorder hợp lệ tuần tự/lần hoàn tất sau quyết định cuối. Từ 1/thêm cuối/gỡ đánh lại, UNIQUE kiểm commit/không trùng cặp.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-005/017/022: response/validation array-ID/trùng/thêm-gỡ lặp, DDL deferred/lock order khi trạng thái track-chủ đổi. DEC-019 đã ACCEPTED, không tự thêm ETag/revision. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Interleaving điều khiển/liên kết ẩn-thứ tự-count trước-sau/unhide/constraint commit; không MAX+1 ngoài transaction.
 
 <a id="tc-14"></a>
 
 ## TC-14 Quyền sở hữu playlist
 
-**Đầu vào:** Listener A/B, playlist A, token B, Admin. **Thao tác:** dùng B đọc/sửa/xóa/thêm/gỡ track playlist A qua API-17–API-21, rồi kiểm tra DB.
+Trạng thái: `NOT_RUN`.
 
-**Expected dự kiến:** B không được thao tác tài nguyên A, không có thay đổi dữ liệu; các route này mô tả 403. Can thiệp của Admin chưa chốt, không tự mở quyền. **Phụ thuộc:** DEC-006/DEC-017/DEC-018/DEC-019. **Bằng chứng:** response và xác nhận dữ liệu A nguyên trạng.
+**Đầu vào và thao tác:** Listener A/B và Admin; playlist A, cookie B/Admin; đọc/PATCH/xóa/thêm/gỡ/reorder.
+
+**Expected theo lựa chọn đã xác nhận:** Chỉ A được thao tác playlist A; Admin cũng chỉ playlist của mình. Truy cập chéo bị từ chối, dữ liệu giữ nguyên; mô tả lỗi 403 hiện là mapping DRAFT.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-005/017: response reorder/CSRF lifecycle/status-error từng nhánh; không tự chọn 404 thay 403. Tra [sổ DEC](../decisions/open-decisions.md) và [danh mục API](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Response đã che cookie, so sánh dữ liệu và liên kết trước/sau.
 
 <a id="tc-15"></a>
 
 ## TC-15 Quản trị tài khoản
 
-**Đầu vào:** Admin, Listener, user active/locked, chính Admin đang đăng nhập và id không tồn tại. **Thao tác:** [API-22](../api/admin.md#api-22), [API-23](../api/admin.md#api-23), login và protected request trước/sau khóa.
+Trạng thái: `NOT_RUN`.
 
-**Expected dự kiến:** chỉ Admin quản trị, action ban/unban cập nhật deleted_at; tự khóa bị chặn 400 theo mô tả; user khóa không login được. Quyền khóa Admin khác, tác động nội dung và phiên cũ phải theo DEC-006/DEC-018. **Phụ thuộc:** DEC-006/DEC-012/DEC-017/DEC-018/DEC-022. **Bằng chứng:** response, trạng thái và phép thử quyền trước/sau.
+**Đầu vào và thao tác:** Admin/Listener, user thường active/locked, chính Admin và Admin khác; API-22/23, login/protected/media trước/sau ban/unban.
+
+**Expected theo lựa chọn đã xác nhận:** Chỉ Admin quản trị; cấm khóa chính mình/Admin khác. Khóa user thu hồi tất cả phiên, không login; khóa Creator ẩn track và chặn audio mới. Unban phải login lại và chỉ hiện track chưa gỡ riêng.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-017/022: error/race transaction; admin search BR-009 và khóa hàng user đã chọn. Tra [sổ DEC](../decisions/open-decisions.md) và [danh mục API](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Trạng thái user/phiên/track trước sau; quyền/HTTP trước sau và không vô tình phục hồi track gỡ.
 
 <a id="tc-16"></a>
 
 ## TC-16 Xóa mềm và truy vấn
 
-**Đầu vào:** track đang trong playlist, playlist đang hoạt động và user có nội dung. **Thao tác:** gỡ track bằng API-11 hoặc [API-27](../api/admin.md#api-27); đọc public và [API-26](../api/admin.md#api-26); xóa mềm playlist bằng API-19.
+Trạng thái: `NOT_RUN`.
 
-**Expected dự kiến:** track có deleted_at, không còn trong truy vấn public; Admin có thể lọc kho deleted; hàng và liên kết không bị xóa vật lý chỉ vì soft delete. Track gỡ trong playlist, khóa user và restore còn cần quyết định. **Phụ thuộc:** DEC-005/DEC-009/DEC-017/DEC-018/DEC-019/DEC-022. **Bằng chứng:** kết quả truy vấn trước/sau và hàng/khóa liên kết.
+**Đầu vào và thao tác:** Track trong playlist, user có nội dung; API-11/27 gỡ, API-05/07/17/26 đọc; API-19 xóa playlist; khóa/mở khóa chủ.
+
+**Expected theo lựa chọn đã xác nhận:** Soft delete giữ hàng/liên kết/file; public/playlist loại track gỡ/chủ khóa, không tính count; Admin xem deleted theo query. Unban không sửa deleted_at track. Restore/hard delete ngoài MVP.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-017/022: conditional HTTP/filter admin chủ khóa/lỗi lặp; reorder hiển thị DEC-019 đã chọn; media/cache đã chọn tại API-28/29. Tra [sổ DEC](../decisions/open-decisions.md) và [danh mục API](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Truy vấn/hàng/FK và file trước sau; không suy ra soft delete cascade.
 
 <a id="tc-17"></a>
 
 ## TC-17 URL của tác phẩm đã gỡ
 
-**Đầu vào:** URL audio đã biết, request mới/đang chạy, Range và track trước/sau gỡ. **Thao tác:** truy cập trực tiếp media, không chỉ gọi API chi tiết.
+Trạng thái: `NOT_RUN`.
 
-**Expected:** phải lấy từ [DEC-009](../decisions/open-decisions.md#dec-009), gồm thời điểm ngừng phục vụ và chính sách request đang chạy/cache. Không kết luận “không thể phát” chỉ từ 404 metadata. Khôi phục chỉ thử sau DEC-005. **Phụ thuộc:** DEC-005/DEC-009/DEC-018. **Bằng chứng:** HTTP status/header/byte trả về và thời điểm gỡ.
+**Đầu vào và thao tác:** URL audio cũ API-28 và HEAD API-29, full/single Range, request trước/sau commit gỡ/khóa/mở khóa; track không tồn tại, file mất/không đọc được, DB ngắt; lỗi giữa stream.
+
+**Expected theo lựa chọn đã xác nhận:** Mỗi request mới kiểm tra DB; track không có/gỡ/chủ khóa 404 TRACK_NOT_AVAILABLE, file mất/không đọc được 503 MEDIA_UNAVAILABLE, DB lỗi 503 SERVICE_UNAVAILABLE. Range hợp lệ ngoài file 416 + Content-Range bytes */size; sai cú pháp 400; 206 có Content-Range/Content-Length đúng đoạn, full 200 đúng kích thước; multi-range hợp lệ bỏ qua full 200. HEAD bỏ Range, không body cả lỗi. Cache-Control no-store. Lỗi trước stream JSON envelope (HEAD không body), giữa stream đóng/ghi log, không chèn JSON hoặc đổi status đã gửi. Request đã bắt đầu được hoàn tất sau gỡ/khóa; unban không phục hồi track gỡ riêng. Không tăng lượt nghe từ GET/HEAD.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-017: mã lỗi 400/416, conditional If-Range/validator, Range unit khác bytes và header lỗi phụ. Không dùng no-store làm bằng chứng thu hồi buffer đã tải. Tra [sổ DEC](../decisions/open-decisions.md) và [API-28/29](../api/tracks.md#api-28); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Status/header/byte và JSON lỗi, thời điểm request/commit; khẳng định HEAD không body trên từng lỗi và Range; kiểm tra URL public static không bypass và log không lộ path cho client.
 
 <a id="tc-18"></a>
 
 ## TC-18 Vòng đời Creator
 
-**Đầu vào:** Listener none/pending/rejected, Creator approved, user khóa và hai thao tác review cạnh tranh. **Thao tác:** luồng nộp hồ sơ đã chốt, [API-24](../api/admin.md#api-24), [API-25](../api/admin.md#api-25), sau đó thử upload với token cũ/mới.
+Trạng thái: `NOT_RUN`.
 
-**Expected dự kiến:** approve tạo role creator/status approved; reject không cấp quyền; review không có/đã xử lý báo 404 theo mô tả. Ngày gửi, lý do từ chối, gửi lại, đồng thời và hiệu lực quyền chưa chốt. Không dùng created_at user làm ngày gửi hồ sơ. **Phụ thuộc:** DEC-002/DEC-005/DEC-006/DEC-007/DEC-017/DEC-018/DEC-022. **Bằng chứng:** trạng thái trước/sau và kiểm tra quyền tại ranh giới HTTP.
+**Đầu vào và thao tác:** API-35/36/37/24/25, Listener verified/unverified/pending/rejected/locked/Creator approved, application ID khác user ID, hai review cạnh tranh và cookie trước approve.
+
+**Expected theo lựa chọn đã xác nhận:** Một pending/user/pending bất biến/rejected nộp POST mới/lưu lịch sử; duyệt application ID/khóa hàng hồ sơ, approve role creator/quyền request kế tiếp, reject không upload. users.role nguồn quyền/creatorStatus suy ra hồ sơ; ngày nộp riêng/reviewer-ngày-lý do; PATCH kênh tên-bio không đổi quyền.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-005/017/022: field lĩnh vực-lý do/body-response/required-null/mapping trạng thái-kênh/transaction. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Hồ sơ-history-user trước-sau/thử upload bằng phiên cũ/ID application không nhầm user/ngày nộp không lấy user.created_at.
 
 <a id="tc-19"></a>
 
 ## TC-19 DDL, seed và fixture
 
-**Điều kiện:** database thử nghiệm dùng riêng, đúng engine/version được chốt, phạm vi chạy reset được giao rõ. **Thao tác tương lai:** chạy DDL/seed, kiểm tra năm bảng, FK/CHECK/UNIQUE/default, sequence sau insert và dữ liệu mẫu. Đọc [cảnh báo tác động SQL](../development/local-setup.md) trước khi chạy.
+Trạng thái: `NOT_RUN`.
 
-**Expected quan sát DDL:** PK/UNIQUE/FK và enum CHECK hành xử đúng khai báo; soft delete không tự cascade; sort_order default hiện tại 1, nullable đúng từ điển. Đây không phê duyệt schema đích. Kiểm tra mật khẩu mẫu, file media và quyền sử dụng riêng; không gọi seed hợp lệ khi thiếu file. **Phụ thuộc:** DEC-007/DEC-013/DEC-014/DEC-019/DEC-020/DEC-022. **Bằng chứng:** phiên bản, revision, log, truy vấn và tập file; ghi cả lỗi.
+**Đầu vào và thao tác** — Chạy migration đích bằng `node-pg-migrate` trên DB thử riêng PostgreSQL 18 trống sau khi migration được tạo. Kiểm tra DDL/seed cũ ở môi trường riêng nếu có tác vụ tương ứng. Thử seed demo sau khi có bộ dữ liệu được xác nhận.
+
+**Expected theo lựa chọn đã xác nhận** — Sau chuỗi migration, schema đích có năm bảng nghiệp vụ hiện có và bốn bảng bổ sung `otp_challenges`, `auth_sessions`, `creator_applications` và `listen_cooldowns`. Kiểm tra `email_verified_at`, `search_text`, `TIMESTAMPTZ`, UNIQUE thứ tự kiểm tra lúc COMMIT và soft delete. DB khởi tạo chưa có tài khoản hoặc nội dung demo. Kiểm tra scrypt và đăng nhập sau xác minh email khi chạy seed demo riêng. [Phạm vi migration đã xác nhận](../decisions/open-decisions.md#evidence-initial-migration-2026-11-18).
+
+Nếu kiểm riêng DDL cũ, đối chiếu năm bảng, 40 cột, chín index tường minh, `sort_order DEFAULT 1` và FK/UNIQUE/CHECK/nullable theo khai báo. Kiểm tra `UPDATE deleted_at` không cascade.
+
+**Chi tiết chưa chốt/phụ thuộc** — Cột, FK, index, thứ tự khóa, định dạng hash, lệnh chạy và fixture/media còn DEC-003/014/020/022. Chưa có migration để chạy. [Sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17).
+
+**Bằng chứng cần có:** Revision/version/log DDL-migration/rollback-dữ liệu/sequence/hash-login sau verify/manifest; không reset DB cần giữ.
 
 <a id="tc-20"></a>
 
 ## TC-20 Hiệu năng
 
-**Đầu vào:** máy/runtime/DB, kích thước dữ liệu/file, query và tải theo protocol được xác nhận. **Thao tác:** đo API danh sách/tìm kiếm/playlist và thành phần media theo hợp đồng; ghi cold/warm cache và cách thống kê đã chốt.
+Trạng thái: `NOT_RUN`.
 
-**Expected:** ngưỡng/percentile theo [DEC-015](../decisions/open-decisions.md#dec-015); chưa đủ điều kiện đặt pass/fail cho 500 ms hoặc một giây. Mục tiêu phát audio tích hợp không được coi đã đạt từ thời gian API metadata. **Phụ thuộc:** DEC-009/DEC-012/DEC-014/DEC-015/DEC-017. **Bằng chứng:** dữ liệu đo thô, công cụ, môi trường, phương pháp tổng hợp và giới hạn phép đo.
+**Đầu vào và thao tác:** 1.000 track, 100 user, 200 playlist, 10 người dùng đồng thời; máy/runtime/DB/network và file mẫu theo protocol sẽ chốt.
+
+**Expected theo lựa chọn đã xác nhận:** API đọc danh sách/tìm kiếm/playlist p95 <500 ms sau warm-up, đo 60 giây; cold start báo riêng. Bắt đầu nghe ≤1 giây là phép đo tích hợp riêng, không suy ra từ API metadata.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-009/012/014/015/017: cấu hình, công cụ/warm-up/request mix, phép đo percentile và start/end audio. Chưa đủ protocol để ghi PASS/FAIL định lượng. Tra [sổ DEC](../decisions/open-decisions.md) và [danh mục API](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Dữ liệu thô, thông số môi trường và phương pháp; không ghi mẫu JSON hoặc index là bằng chứng hiệu năng.
 
 <a id="tc-21"></a>
 
 ## TC-21 Tái hiện môi trường và phục hồi
 
-**Đầu vào:** cấu hình được xác nhận, database/media thử nghiệm, backup hợp lệ và môi trường sạch. **Thao tác:** tái hiện thiết lập, kiểm tra API chính, backup/restore theo quy trình được chốt; kiểm tra khả năng demo không phụ thuộc mạng nếu đó là ràng buộc được xác nhận.
+Trạng thái: `NOT_RUN`.
 
-**Expected:** tái hiện đúng dữ liệu và tài nguyên theo protocol, không chỉ kiểm tra process có chạy. Chính sách backup/retention, phạm vi local/cloud và tiêu chí còn mở. **Phụ thuộc:** DEC-008/DEC-009/DEC-013/DEC-014/DEC-015/DEC-020/DEC-022. **Bằng chứng:** lệnh thật, phiên bản, đối chiếu trước/sau restore và file được phục hồi.
+**Đầu vào và thao tác:** Local/online được chọn, ffprobe/FFmpeg/Sharp, thư mục temp/final cùng filesystem, email thật, backup/restore; restart/crash upload/cover và chạy job khi có file active, soft delete/shared/default cover hoặc DB ngắt.
+
+**Expected theo lựa chọn đã xác nhận:** Media bền qua restart/deploy, backup/restore đối chiếu DB và file. Cleanup lúc startup/mỗi 30 phút, chỉ file temp hoặc không tham chiếu đều đã quá 24 giờ; bỏ active, kiểm tra cả soft delete, không xóa audio soft delete/ảnh mặc định/shared/còn dùng; DB lỗi hoặc commit chưa xác minh hoãn dọn. Cover cũ chỉ vào danh sách dọn sau commit. Phiên DB còn hạn qua restart; OTP tới email thật; toàn hệ thống không bắt buộc offline.
+
+**Chi tiết chưa chốt/phụ thuộc:** DEC-003/014/015/016/020/022: hosting/config/version binary, timeout/số tiến trình và scheduler, nhận biết active/chống race/đối chiếu commit, retention/protocol backup và fixture thật. Không tự đặt lease/journal hoặc coi mock là kiểm chứng phục hồi thật. Tra [sổ DEC](../decisions/open-decisions.md) và [API-28/29](../api/tracks.md#api-28); không tự chọn expected còn thiếu.
+
+**Bằng chứng cần có:** Chạy clock/job có kiểm soát, snapshot tham chiếu/file trước sau, crash point/commit outcomes, command/version/config đã che bí mật và kết quả restore/mail. Không thực thi crash/delete trên dữ liệu cần giữ.
