@@ -1,6 +1,6 @@
 # API playlists
 
-Các endpoint sau là bản mô tả dự kiến. Đọc [quy ước API](README.md) và các quyết định liên quan trước khi giao việc. Các khối ví dụ giữ cấu trúc được mô tả, chưa chuẩn hóa những khác biệt chưa chốt.
+Đồng bộ quyết định ngày 17/11/2026. Quy tắc CONFIRMED theo [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17); field/validation/wire chưa đủ vẫn DRAFT theo [quy ước API](README.md). Ví dụ không phải kết quả chạy hoặc fixture.
 
 <a id="api-15"></a>
 
@@ -8,9 +8,9 @@ Các endpoint sau là bản mô tả dự kiến. Đọc [quy ước API](README
 
 `GET /api/playlists`
 
-- Đặc tả: `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
+- Đặc tả: lựa chọn nghiệp vụ `CONFIRMED`, wire còn thiếu `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
 - Mục tiêu và UC: [UC07](../requirements/use-cases.md#uc07).
-- Quyền đang được mô tả: `Auth(JWT)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
+- Quyền đang được mô tả: `Auth(cookie JWT + phiên DB)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
 - Quy tắc: [BR-004](../requirements/business-rules.md#br-004), [BR-007](../requirements/business-rules.md#br-007). Dữ liệu: [playlists](../architecture/data-model.md#playlists), [playlist_tracks](../architecture/data-model.md#playlist-tracks).
 - Quyết định liên quan: [DEC-017](../decisions/open-decisions.md#dec-017), [DEC-018](../decisions/open-decisions.md#dec-018), [DEC-019](../decisions/open-decisions.md#dec-019).
 
@@ -19,12 +19,14 @@ Các endpoint sau là bản mô tả dự kiến. Đọc [quy ước API](README
 Khối sau ghi kiểu, điều kiện hoặc trường của request; phần chú thích kiểu không phải payload có thể gửi nguyên văn.
 
 ```text
-Không có (Truyền Token trong Header)
+Không có body; dùng cookie phiên. Protected request ghi gửi X-CSRF-Token/kiểm Origin theo quy ước; response/lifecycle còn DEC-017.
 ```
 
 ### Đầu ra minh họa
 
-Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. HTTP success status chưa được xác định đầy đủ; xem DEC-017.
+Mã thành công: 200 OK.
+
+Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. Envelope và mã thành công theo quy ước đã chốt; required/null và lỗi chi tiết còn DEC-017.
 
 ```json
 {
@@ -47,13 +49,15 @@ Không có (Truyền Token trong Header)
 - 401 Unauthorized: Chưa đăng nhập
 - 500 Internal Server Error: Lỗi truy vấn CSDL
 
-Error body và những nhánh lỗi chưa mô tả không được suy ra từ bảng mã lỗi này; xem DEC-017.
+Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/DB dịch vụ và mọi nhánh mới. Envelope lỗi đã chọn ở README; code/chi tiết từng lỗi còn DEC-017.
 
 ### Tác động dữ liệu và giới hạn
 
-Đọc playlist theo user_id và deleted_at IS NULL, mô tả thứ tự created_at giảm dần. Cách tính trackCount khi track đã bị gỡ chưa chốt.
+CONFIRMED: playlist của user xác thực, chưa xóa; trackCount chỉ đếm track chưa gỡ/chủ không khóa. Admin không được đọc playlist người khác; thứ tự danh sách created_at giảm dần từ mô tả cũ vẫn DRAFT.
 
-Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12), [TC-14](../testing/acceptance.md#tc-14). Chốt các DEC liên quan trước khi dùng ví dụ này làm hợp đồng triển khai.
+Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
+
+Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12), [TC-14](../testing/acceptance.md#tc-14). Chỉ phần đã xác nhận là ràng buộc; hoàn tất các ô wire còn thiếu trước triển khai endpoint cuối cùng.
 
 <a id="api-16"></a>
 
@@ -61,9 +65,9 @@ Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12), [TC-14](../te
 
 `POST /api/playlists`
 
-- Đặc tả: `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
+- Đặc tả: lựa chọn nghiệp vụ `CONFIRMED`, wire còn thiếu `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
 - Mục tiêu và UC: [UC07](../requirements/use-cases.md#uc07).
-- Quyền đang được mô tả: `Auth(JWT)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
+- Quyền đang được mô tả: `Auth(cookie JWT + phiên DB)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
 - Quy tắc: [BR-007](../requirements/business-rules.md#br-007). Dữ liệu: [playlists](../architecture/data-model.md#playlists).
 - Quyết định liên quan: [DEC-017](../decisions/open-decisions.md#dec-017), [DEC-022](../decisions/open-decisions.md#dec-022).
 
@@ -80,7 +84,9 @@ Khối sau ghi kiểu, điều kiện hoặc trường của request; phần ch�
 
 ### Đầu ra minh họa
 
-Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. HTTP success status chưa được xác định đầy đủ; xem DEC-017.
+Mã thành công: 201 Created.
+
+Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. Envelope và mã thành công theo quy ước đã chốt; required/null và lỗi chi tiết còn DEC-017.
 
 ```json
 {
@@ -103,13 +109,15 @@ Khối sau ghi kiểu, điều kiện hoặc trường của request; phần ch�
 - 401 Unauthorized: Chưa đăng nhập
 - 500 Internal Server Error: Lỗi lưu CSDL
 
-Error body và những nhánh lỗi chưa mô tả không được suy ra từ bảng mã lỗi này; xem DEC-017.
+Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/DB dịch vụ và mọi nhánh mới. Envelope lỗi đã chọn ở README; code/chi tiết từng lỗi còn DEC-017.
 
 ### Tác động dữ liệu và giới hạn
 
-Tạo playlist, user_id lấy từ người xác thực; cover mặc định theo DDL hiện có. Không hỗ trợ public/private trong hợp đồng này.
+CONFIRMED: tạo playlist gắn user xác thực, thiếu ảnh dùng mặc định; 201. Không public/private; giới hạn tên/field null còn DRAFT theo DEC-017/DEC-022.
 
-Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12). Chốt các DEC liên quan trước khi dùng ví dụ này làm hợp đồng triển khai.
+Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
+
+Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12). Chỉ phần đã xác nhận là ràng buộc; hoàn tất các ô wire còn thiếu trước triển khai endpoint cuối cùng.
 
 <a id="api-17"></a>
 
@@ -117,9 +125,9 @@ Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12). Chốt các D
 
 `GET /api/playlists/:id`
 
-- Đặc tả: `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
+- Đặc tả: lựa chọn nghiệp vụ `CONFIRMED`, wire còn thiếu `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
 - Mục tiêu và UC: [UC07](../requirements/use-cases.md#uc07).
-- Quyền đang được mô tả: `Auth(JWT)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
+- Quyền đang được mô tả: `Auth(cookie JWT + phiên DB)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
 - Quy tắc: [BR-004](../requirements/business-rules.md#br-004), [BR-007](../requirements/business-rules.md#br-007), [BR-008](../requirements/business-rules.md#br-008). Dữ liệu: [playlists](../architecture/data-model.md#playlists), [playlist_tracks](../architecture/data-model.md#playlist-tracks), [tracks](../architecture/data-model.md#tracks).
 - Quyết định liên quan: [DEC-017](../decisions/open-decisions.md#dec-017), [DEC-018](../decisions/open-decisions.md#dec-018), [DEC-019](../decisions/open-decisions.md#dec-019).
 
@@ -133,7 +141,9 @@ Path param: id (int)
 
 ### Đầu ra minh họa
 
-Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. HTTP success status chưa được xác định đầy đủ; xem DEC-017.
+Mã thành công: 200 OK.
+
+Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. Envelope và mã thành công theo quy ước đã chốt; required/null và lỗi chi tiết còn DEC-017.
 
 ```json
 {
@@ -172,23 +182,25 @@ Path param: id (int)
 - 404 Not Found: Playlist không tồn tại hoặc đã bị xóa
 - 500 Internal Server Error: Lỗi truy vấn
 
-Error body và những nhánh lỗi chưa mô tả không được suy ra từ bảng mã lỗi này; xem DEC-017.
+Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/DB dịch vụ và mọi nhánh mới. Envelope lỗi đã chọn ở README; code/chi tiết từng lỗi còn DEC-017.
 
 ### Tác động dữ liệu và giới hạn
 
-Kiểm tra chủ sở hữu, đọc thành viên theo sort_order. Track bị gỡ, playlist bị xóa và thứ tự trùng cần chốt semantics.
+CONFIRMED: chỉ chủ; không đọc playlist đã xóa. Track gỡ/chủ khóa bị loại, vẫn giữ liên kết; đọc thứ tự liên tục từ 1. Không thay đổi liên kết chỉ vì lọc hiển thị. API-38 reorder ID hiển thị/ẩn cuối-hiện lại cuối đã chốt; response/schema còn DEC-005/017/022.
 
-Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12), [TC-14](../testing/acceptance.md#tc-14), [TC-16](../testing/acceptance.md#tc-16). Chốt các DEC liên quan trước khi dùng ví dụ này làm hợp đồng triển khai.
+Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
+
+Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12), [TC-14](../testing/acceptance.md#tc-14), [TC-16](../testing/acceptance.md#tc-16). Chỉ phần đã xác nhận là ràng buộc; hoàn tất các ô wire còn thiếu trước triển khai endpoint cuối cùng.
 
 <a id="api-18"></a>
 
 ## API-18 Đổi tên và mô tả playlist
 
-`PUT /api/playlists/:id`
+`PATCH /api/playlists/:id`
 
-- Đặc tả: `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
+- Đặc tả: lựa chọn nghiệp vụ `CONFIRMED`, wire còn thiếu `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
 - Mục tiêu và UC: [UC07](../requirements/use-cases.md#uc07).
-- Quyền đang được mô tả: `Auth(JWT)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
+- Quyền đang được mô tả: `Auth(cookie JWT + phiên DB)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
 - Quy tắc: [BR-007](../requirements/business-rules.md#br-007). Dữ liệu: [playlists](../architecture/data-model.md#playlists).
 - Quyết định liên quan: [DEC-017](../decisions/open-decisions.md#dec-017), [DEC-019](../decisions/open-decisions.md#dec-019).
 
@@ -200,14 +212,16 @@ Khối sau ghi kiểu, điều kiện hoặc trường của request; phần ch�
 Path param: id (int)
 Body JSON:
 {
-  "title": "string (bắt buộc)",
+  "title": "string (tùy chọn; bỏ qua giữ nguyên)",
   "description": "string (tùy chọn)"
 }
 ```
 
 ### Đầu ra minh họa
 
-Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. HTTP success status chưa được xác định đầy đủ; xem DEC-017.
+Mã thành công: 200 OK.
+
+Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. Envelope và mã thành công theo quy ước đã chốt; required/null và lỗi chi tiết còn DEC-017.
 
 ```json
 {
@@ -228,13 +242,15 @@ Body JSON:
 - 404 Not Found: Playlist không tồn tại
 - 500 Internal Server Error: Lỗi cập nhật
 
-Error body và những nhánh lỗi chưa mô tả không được suy ra từ bảng mã lỗi này; xem DEC-017.
+Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/DB dịch vụ và mọi nhánh mới. Envelope lỗi đã chọn ở README; code/chi tiết từng lỗi còn DEC-017.
 
 ### Tác động dữ liệu và giới hạn
 
-Chỉ chủ sở hữu cập nhật title/description. Mẫu dùng PUT nhưng chưa xác định omitted/null và cập nhật trên playlist đã xóa.
+CONFIRMED: chủ PATCH title/description trên playlist chưa xóa; omitted giữ nguyên, null chỉ xóa field được cho phép. PATCH rỗng 400 đã chốt; nullable field cụ thể/lỗi còn DEC-017; không can thiệp playlist người khác kể cả Admin.
 
-Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12), [TC-14](../testing/acceptance.md#tc-14). Chốt các DEC liên quan trước khi dùng ví dụ này làm hợp đồng triển khai.
+Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
+
+Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12), [TC-14](../testing/acceptance.md#tc-14). Chỉ phần đã xác nhận là ràng buộc; hoàn tất các ô wire còn thiếu trước triển khai endpoint cuối cùng.
 
 <a id="api-19"></a>
 
@@ -242,9 +258,9 @@ Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12), [TC-14](../te
 
 `DELETE /api/playlists/:id`
 
-- Đặc tả: `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
+- Đặc tả: lựa chọn nghiệp vụ `CONFIRMED`, wire còn thiếu `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
 - Mục tiêu và UC: [UC07](../requirements/use-cases.md#uc07).
-- Quyền đang được mô tả: `Auth(JWT)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
+- Quyền đang được mô tả: `Auth(cookie JWT + phiên DB)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
 - Quy tắc: [BR-004](../requirements/business-rules.md#br-004), [BR-007](../requirements/business-rules.md#br-007). Dữ liệu: [playlists](../architecture/data-model.md#playlists).
 - Quyết định liên quan: [DEC-017](../decisions/open-decisions.md#dec-017), [DEC-019](../decisions/open-decisions.md#dec-019), [DEC-022](../decisions/open-decisions.md#dec-022).
 
@@ -258,14 +274,7 @@ Path param: id (int)
 
 ### Đầu ra minh họa
 
-Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. HTTP success status chưa được xác định đầy đủ; xem DEC-017.
-
-```json
-{
-  "success": true,
-  "message": "Xóa playlist thành công"
-}
-```
+**CONFIRMED: HTTP 204 No Content, không body và không JSON envelope.** Chi tiết cookie/headers nếu có theo DEC-017.
 
 ### Lỗi đang được mô tả
 
@@ -274,13 +283,15 @@ Path param: id (int)
 - 404 Not Found: Playlist không tồn tại
 - 500 Internal Server Error: Lỗi cập nhật
 
-Error body và những nhánh lỗi chưa mô tả không được suy ra từ bảng mã lỗi này; xem DEC-017.
+Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/DB dịch vụ và mọi nhánh mới. Envelope lỗi đã chọn ở README; code/chi tiết từng lỗi còn DEC-017.
 
 ### Tác động dữ liệu và giới hạn
 
-Đặt deleted_at, giữ track và liên kết theo mô tả. Hành vi lặp lại thao tác và khả năng khôi phục chưa xác định.
+CONFIRMED: soft delete playlist đúng chủ, giữ track/liên kết; thành công 204 không body, không sửa playlist đã xóa. Restore ngoài MVP, thao tác lặp còn DEC-017/DEC-019.
 
-Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12), [TC-14](../testing/acceptance.md#tc-14), [TC-16](../testing/acceptance.md#tc-16). Chốt các DEC liên quan trước khi dùng ví dụ này làm hợp đồng triển khai.
+Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
+
+Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12), [TC-14](../testing/acceptance.md#tc-14), [TC-16](../testing/acceptance.md#tc-16). Chỉ phần đã xác nhận là ràng buộc; hoàn tất các ô wire còn thiếu trước triển khai endpoint cuối cùng.
 
 <a id="api-20"></a>
 
@@ -288,9 +299,9 @@ Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12), [TC-14](../te
 
 `POST /api/playlists/:id/tracks`
 
-- Đặc tả: `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
+- Đặc tả: lựa chọn nghiệp vụ `CONFIRMED`, wire còn thiếu `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
 - Mục tiêu và UC: [UC07](../requirements/use-cases.md#uc07).
-- Quyền đang được mô tả: `Auth(JWT)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
+- Quyền đang được mô tả: `Auth(cookie JWT + phiên DB)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
 - Quy tắc: [BR-007](../requirements/business-rules.md#br-007), [BR-008](../requirements/business-rules.md#br-008). Dữ liệu: [playlists](../architecture/data-model.md#playlists), [playlist_tracks](../architecture/data-model.md#playlist-tracks), [tracks](../architecture/data-model.md#tracks).
 - Quyết định liên quan: [DEC-017](../decisions/open-decisions.md#dec-017), [DEC-019](../decisions/open-decisions.md#dec-019), [DEC-022](../decisions/open-decisions.md#dec-022).
 
@@ -308,7 +319,9 @@ Body JSON:
 
 ### Đầu ra minh họa
 
-Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. HTTP success status chưa được xác định đầy đủ; xem DEC-017.
+Mã thành công: 201 Created.
+
+Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. Envelope và mã thành công theo quy ước đã chốt; required/null và lỗi chi tiết còn DEC-017.
 
 ```json
 {
@@ -330,13 +343,15 @@ Body JSON:
 - 404 Not Found: Bài hát hoặc Playlist không tồn tại
 - 500 Internal Server Error: Lỗi ghi CSDL
 
-Error body và những nhánh lỗi chưa mô tả không được suy ra từ bảng mã lỗi này; xem DEC-017.
+Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/DB dịch vụ và mọi nhánh mới. Envelope lỗi đã chọn ở README; code/chi tiết từng lỗi còn DEC-017.
 
 ### Tác động dữ liệu và giới hạn
 
-Kiểm tra sở hữu và sự tồn tại; tạo liên kết. Có ý định sort_order = MAX + 1, nhưng đồng thời/tài nguyên đã gỡ còn mở; PK ngăn trùng thành viên.
+CONFIRMED: chỉ chủ playlist chưa xóa; liên kết không trùng; thêm cuối từ 1 và khóa playlist trong transaction. Track gỡ/ẩn không hiện/không tính count. UNIQUE thứ tự kiểm lúc commit đã chọn; thêm track ẩn/lặp và giao dịch chi tiết còn DEC-017/022, MAX+1 đơn lẻ chưa đủ.
 
-Kiểm thử dự kiến: [TC-13](../testing/acceptance.md#tc-13), [TC-14](../testing/acceptance.md#tc-14). Chốt các DEC liên quan trước khi dùng ví dụ này làm hợp đồng triển khai.
+Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
+
+Kiểm thử dự kiến: [TC-13](../testing/acceptance.md#tc-13), [TC-14](../testing/acceptance.md#tc-14). Chỉ phần đã xác nhận là ràng buộc; hoàn tất các ô wire còn thiếu trước triển khai endpoint cuối cùng.
 
 <a id="api-21"></a>
 
@@ -344,9 +359,9 @@ Kiểm thử dự kiến: [TC-13](../testing/acceptance.md#tc-13), [TC-14](../te
 
 `DELETE /api/playlists/:id/tracks/:trackId`
 
-- Đặc tả: `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
+- Đặc tả: lựa chọn nghiệp vụ `CONFIRMED`, wire còn thiếu `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
 - Mục tiêu và UC: [UC07](../requirements/use-cases.md#uc07).
-- Quyền đang được mô tả: `Auth(JWT)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
+- Quyền đang được mô tả: `Auth(cookie JWT + phiên DB)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
 - Quy tắc: [BR-007](../requirements/business-rules.md#br-007), [BR-008](../requirements/business-rules.md#br-008). Dữ liệu: [playlists](../architecture/data-model.md#playlists), [playlist_tracks](../architecture/data-model.md#playlist-tracks).
 - Quyết định liên quan: [DEC-017](../decisions/open-decisions.md#dec-017), [DEC-019](../decisions/open-decisions.md#dec-019).
 
@@ -362,14 +377,7 @@ Path params:
 
 ### Đầu ra minh họa
 
-Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. HTTP success status chưa được xác định đầy đủ; xem DEC-017.
-
-```json
-{
-  "success": true,
-  "message": "Đã gỡ bài hát khỏi playlist thành công"
-}
-```
+**CONFIRMED: HTTP 204 No Content, không body và không JSON envelope.** Chi tiết cookie/headers nếu có theo DEC-017.
 
 ### Lỗi đang được mô tả
 
@@ -378,10 +386,24 @@ Path params:
 - 404 Not Found: Không tìm thấy bài hát trong playlist
 - 500 Internal Server Error: Lỗi xóa dữ liệu
 
-Error body và những nhánh lỗi chưa mô tả không được suy ra từ bảng mã lỗi này; xem DEC-017.
+Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/DB dịch vụ và mọi nhánh mới. Envelope lỗi đã chọn ở README; code/chi tiết từng lỗi còn DEC-017.
 
 ### Tác động dữ liệu và giới hạn
 
-Xóa liên kết playlist_id/track_id; không xóa track. Có dồn lại sort_order hay không chưa được chốt.
+CONFIRMED: chỉ chủ playlist chưa xóa; xóa liên kết, không xóa track, đánh lại thứ tự trong transaction khóa playlist. Thành công 204 không body; ẩn cuối/hiện lại cuối theo API-38; lỗi gỡ lặp còn DEC-017, schema/lock order DEC-022.
 
-Kiểm thử dự kiến: [TC-13](../testing/acceptance.md#tc-13), [TC-14](../testing/acceptance.md#tc-14). Chốt các DEC liên quan trước khi dùng ví dụ này làm hợp đồng triển khai.
+Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
+
+Kiểm thử dự kiến: [TC-13](../testing/acceptance.md#tc-13), [TC-14](../testing/acceptance.md#tc-14). Chỉ phần đã xác nhận là ràng buộc; hoàn tất các ô wire còn thiếu trước triển khai endpoint cuối cùng.
+
+<a id="api-38"></a>
+
+## API-38 Sắp thứ tự playlist
+
+`PATCH /api/playlists/:id/order`
+
+CONFIRMED theo [DEC-019](../decisions/open-decisions.md#dec-019)/[xác nhận mới](../decisions/open-decisions.md#evidence-simple-2026-11-17), UC07/BR-007/008; NOT_IMPLEMENTED/NOT_RUN. Chỉ chủ playlist chưa xóa, kể cả Admin chỉ của mình; cookie/CSRF/Origin theo [quy ước](README.md).
+
+Body CONFIRMED `{trackIds:[...]}` là toàn bộ ID **đang hiển thị**, thay mọi liên kết trước đây. Backend khóa playlist/kiểm đúng tập hiển thị; giữ liên kết track ẩn ở cuối/hiện lại cuối, đọc thứ tự liên tục/từ 1, không đếm track ẩn. Tập track thay đổi trả 409 để tải lại. Hai reorder hợp lệ tuần tự, lần hoàn tất sau quyết định cuối; UNIQUE thứ tự kiểm lúc commit.
+
+Success 200 theo PATCH, response đầy đủ/validation array-ID trùng-ID sai/lỗi khác còn DEC-005/017. DDL deferred/lock order với trạng thái track-chủ còn DEC-022; không tự tạo revision/ETag hoặc hứa mọi thay đổi cạnh tranh đều 409. [TC-13](../testing/acceptance.md#tc-13)/[TC-14](../testing/acceptance.md#tc-14).

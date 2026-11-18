@@ -6,7 +6,7 @@ Quy trình này áp dụng cho công việc được giao trong repo; không t�
 
 1. Đọc [hiện trạng](../project/status.md) để biết mã/lệnh nào thực sự có.
 2. Xác định UC, quy tắc, API/bảng liên quan qua [traceability](../requirements/traceability.md).
-3. Đọc các `DEC` liên quan. Phân biệt phần có thể làm độc lập và phần phụ thuộc kết quả chưa chốt.
+3. Đọc các `DEC` liên quan và kết quả xác nhận 17/11/2026. Không xin chốt lại lựa chọn đã ACCEPTED/CONFIRMED; xác định chi tiết còn OPEN thật sự chặn đầu ra.
 4. Với công việc nhiều bước, ghi [kế hoạch](../plans/README.md) có đầu vào, giới hạn, đầu ra và phép kiểm chứng. Không tạo kế hoạch triển khai một phương án OPEN như thể đã được chọn.
 
 Khi tác vụ phụ thuộc quyết định mở, nêu mã, lựa chọn cần chốt và ảnh hưởng cụ thể. Tiếp tục phần độc lập đã được giao; không yêu cầu xác nhận chung chỉ để tiếp tục công việc đã rõ. Nếu phát hiện thông tin mới, bổ sung đúng mục quyết định hoặc tạo mã mới theo [quy trình](../decisions/README.md).
@@ -29,8 +29,10 @@ Nhóm từng mô tả feature branch, review chéo và không push trực tiếp
 
 ## Ba tình huống tra cứu
 
-**Giao việc auth:** UC01/UC02 → BR-003 → API-01–API-04 → DEC-002/DEC-003/DEC-006/DEC-014/DEC-017 → TC-01–TC-05. Có thể phân tích hợp đồng; chưa thể tự quyết JWT revocation hoặc thêm route OTP.
+**Giao việc auth:** UC01/UC02 → BR-003 → API auth → DEC-003/005/006/014/017/022 → TC-01–TC-05. Đã chọn OTP email thật, JWT + phiên PostgreSQL/cookie 24 giờ, không refresh; đã chọn Resend/HMAC/scrypt/HS256/soundwave_session/X-CSRF-Token/Origin; còn wire/status/CSRF lifecycle/key lifecycle/schema chi tiết. Không lấy ví dụ đăng ký cũ không OTP hoặc JSON token làm hợp đồng cuối.
 
-**Thay đổi database:** data-model → SQL hiện có → DEC-007/DEC-013/DEC-014/DEC-019/DEC-022 → TC-19 và UC bị ảnh hưởng. Đọc DDL được phép; script reset không phải migration nâng cấp.
+**Thay đổi database:** data-model → DDL hiện có và mô hình đích tách biệt → DEC-003/006/007/010/013/014/019/022 → TC-19 và UC liên quan. PostgreSQL 18 đã chọn; schema logic thêm otp_challenges/auth_sessions/creator_applications/listen_cooldowns, search_text/email_verified_at; chưa có migration. Đọc SQL được phép; script reset không phải migration giữ dữ liệu.
 
-**Endpoint xung đột:** tìm API-ID → DEC-004 → trình bày cả hai method/path và tác vụ bị chặn. Không thêm alias hoặc route đôi để né việc chốt. Cập nhật hợp đồng/test sau khi có kết quả xác nhận.
+**Tra endpoint:** tìm API-ID → danh mục API hiện hành → DEC-004/005/009/017. Bốn route tranh chấp cũ đã được chọn; update dùng PATCH. Không thêm alias; API-30–39 đã chốt method/path, API-25 application ID; response/field bổ sung chưa đủ nằm trong gaps. Chỉ chuẩn hóa phần đã được xác nhận, giữ nullable/error/body chưa chọn là DRAFT.
+
+Thứ tự triển khai đã chấp nhận tại [ADR-0005](../decisions/adr-0005-simple-backend-contracts.md): bootstrap/migration → auth/OTP → Creator → upload/nghe → search → playlist, kiểm thử từng luồng. Reorder hiện chỉ ID hiển thị/ẩn cuối; không tái áp dụng quy tắc mọi ID liên kết từ lịch sử DEC-019.

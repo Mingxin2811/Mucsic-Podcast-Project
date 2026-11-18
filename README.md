@@ -1,11 +1,11 @@
 # Soundwave
 
-Soundwave là dự án website nghe nhạc và podcast trong học phần Quản lý dự án phần mềm. Bộ tài liệu chính thức dành cho backend, database, kiểm thử và quản lý dự án nằm trong [docs](docs/README.md).
+Soundwave là dự án website nghe nhạc và podcast trong học phần Quản lý dự án phần mềm tại PTIT. [Docs](docs/README.md) quản lý yêu cầu, backend, database, kiểm thử và quản lý dự án; chưa đặc tả frontend.
 
-Checkout hiện có SQL tạo cấu trúc và dữ liệu mẫu; backend mới có khung thư mục. Chưa có manifest, máy chủ API hoặc kết quả chạy ứng dụng được kiểm chứng. Xem [hiện trạng](docs/project/status.md) trước khi thiết lập môi trường hay giao việc.
+Checkout có SQL cấu trúc/seed và khung backend/frontend, chưa có manifest/API server/test suite hoặc kết quả chạy ứng dụng. Đọc [hiện trạng](docs/project/status.md#simple-sync-2026-11-17) trước khi thiết lập; SQL reset không phải migration.
 
-- Thành viên mới: đọc [tổng quan](docs/project/overview.md), rồi [mục lục](docs/README.md).
-- Coding agent: đọc [AGENTS.md](AGENTS.md), rồi tài liệu theo tác vụ.
-- Người giao việc: đọc [quy trình](docs/development/workflow.md), [API](docs/api/README.md) và [quyết định mở](docs/decisions/open-decisions.md).
+- Thành viên mới: [tổng quan](docs/project/overview.md) → [mục lục](docs/README.md).
+- Coding agent: [AGENTS](AGENTS.md) → [workflow](docs/development/workflow.md) → [sổ DEC](docs/decisions/open-decisions.md).
+- Giao việc: [API](docs/api/README.md), [truy xuất](docs/requirements/traceability.md), [nghiệm thu](docs/testing/acceptance.md).
 
-Các hợp đồng đang được mô tả là bản nháp. Việc tài liệu hóa không đồng nghĩa chúng đã được phê duyệt, triển khai hoặc kiểm thử.
+Ngày 17/11/2026, người dùng chấp nhận [phương án backend đơn giản](docs/decisions/open-decisions.md#evidence-simple-2026-11-17): bộ công cụ/Resend/scrypt/HS256/cookie-CSRF, schema logic, lượt nghe/search/reorder/text. Hiện 39 API-ID/14 DEC ACCEPTED/8 OPEN/5 ADR, mọi TC NOT_RUN. [API gaps](docs/api/README.md#contract-gaps) ghi chi tiết chưa chốt; xác nhận thiết kế không là bằng chứng triển khai.

@@ -1,6 +1,6 @@
 # Quy trình ghi nhận quyết định
 
-[Sổ quyết định mở](open-decisions.md) là nơi duy nhất quản lý câu hỏi và các phương án. Những tài liệu khác dẫn tới mã `DEC` tương ứng. Xem [hiện trạng](../project/status.md) cho thiếu hụt bằng chứng, vì sự thật chưa kiểm chứng không phải phương án để bỏ phiếu.
+[Sổ quyết định và phần còn mở](open-decisions.md) là nơi duy nhất quản lý câu hỏi và các phương án. Những tài liệu khác dẫn tới mã `DEC` tương ứng. Xem [hiện trạng](../project/status.md) cho thiếu hụt bằng chứng, vì sự thật chưa kiểm chứng không phải phương án để bỏ phiếu.
 
 ## Vòng đời
 
@@ -44,3 +44,13 @@ Bằng chứng xác nhận:
 Tài liệu, kế hoạch và kiểm thử bị ảnh hưởng:
 Thay thế / được thay thế bởi:
 ```
+
+## Cập nhật 17/11/2026
+
+Sổ DEC ghi bằng chứng xác nhận từ người dùng trong phiên, phạm vi kết quả và phần thiếu riêng. DEC còn OPEN có thể đã chấp nhận một số lựa chọn; không tạo nhãn PARTIAL hoặc hiểu rằng mọi nội dung đều chưa được chọn. Chỉ chuyển ACCEPTED khi phạm vi quyết định được giải quyết; chi tiết ngoài phạm vi đó tiếp tục được dẫn tới DEC sở hữu. Không tự coi việc “đồng bộ đã chốt” là yêu cầu hoàn tất mọi wire.
+
+ADR đã chấp nhận: [auth/phiên](adr-0001-authentication-and-sessions.md), [media/online](adr-0002-media-and-online-readiness.md), [backend/database](adr-0003-backend-and-database.md). Chúng giải thích lựa chọn kiến trúc, dẫn tới tài liệu sở hữu hợp đồng thay vì tạo schema/response thứ hai. Chưa có lần chạy ứng dụng phát sinh từ các ADR.
+
+Bổ sung cùng ngày: [ADR-0004 audio và vòng đời file](adr-0004-audio-contract-and-file-lifecycle.md) mở rộng ADR-0002 theo xác nhận mới, không thay lựa chọn local. DEC-009/DEC-011 nay ACCEPTED trong phạm vi được ghi; chi tiết runtime/schema ngoài phạm vi còn DEC-014/017/022.
+
+Hiện hành sau [xác nhận đơn giản](open-decisions.md#evidence-simple-2026-11-17): 14 ACCEPTED/8 OPEN, thêm [ADR-0005](adr-0005-simple-backend-contracts.md), 39 API-ID. Quy tắc reorder cũ được thay thế có ghi lịch sử; những ADR auth/nền tảng được bổ sung, không đổi kiến trúc cốt lõi.

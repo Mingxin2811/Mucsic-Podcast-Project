@@ -11,4 +11,8 @@ Sử dụng [template](template.md) cho công việc nhiều bước hoặc thay
 - Cập nhật `Progress`, `Surprises & Discoveries`, `Decision Log`, `Outcomes & Retrospective` trong lúc làm. Giữ tách đề xuất và quyết định đã xác nhận.
 - Kết thúc bằng bằng chứng và việc còn thiếu; không đánh dấu hoàn thành chỉ vì đã viết kế hoạch.
 
-Quy tắc nhận việc ở [workflow](../development/workflow.md), hiện trạng chung ở [status](../project/status.md). Kế hoạch của đợt này: [documentation foundation](2026-11-11-documentation-foundation.md).
+Quy tắc nhận việc ở [workflow](../development/workflow.md), hiện trạng chung ở [status](../project/status.md). Kế hoạch lịch sử: [documentation foundation 11/11](2026-11-11-documentation-foundation.md). Đợt đồng bộ hiện tại: [phỏng vấn và cập nhật quyết định 17/11](2026-11-17-documentation-decisions-interview.md).
+
+Đợt bổ sung hợp đồng audio/upload sau xác nhận: [media contracts 17/11](2026-11-17-media-contracts.md). Kế hoạch đồng bộ trước đó giữ kết quả tại thời điểm hoàn tất; số API/DEC mới xem status và kế hoạch media.
+
+Đợt hiện hành: [đồng bộ phương án backend đơn giản](2026-11-17-simple-backend-decisions.md), giữ riêng bằng chứng DOCSYNC-20261117-03 với hai snapshot trước.

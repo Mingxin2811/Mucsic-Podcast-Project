@@ -1,37 +1,37 @@
 # Yêu cầu chất lượng
 
-Trạng thái: `DRAFT`; các mục dưới đây là mục tiêu thiết kế, chưa phải kết quả đo. [DEC-015](../decisions/open-decisions.md#dec-015) quản lý điều kiện đo và ngưỡng nghiệm thu còn thiếu.
+Ngưỡng/lựa chọn đã được xác nhận ngày 17/11/2026 theo [sổ DEC](../decisions/open-decisions.md#evidence-2026-11-17); protocol chưa đủ vẫn DRAFT. Đây không phải kết quả đo; toàn bộ runtime NOT_RUN.
 
 <a id="nfr-001"></a>
 
 ## NFR-001 Hiệu năng đọc API
 
-Mục tiêu được nêu: đọc danh sách track, tìm kiếm và chi tiết playlist dưới 500 ms trên local. Chưa xác nhận percentile, tải đồng thời, kích thước dữ liệu, cấu hình máy/DB, trạng thái cache hoặc phần thời gian được tính. Chỉ ghi kết quả sau khi có protocol ở [TC-20](../testing/acceptance.md#tc-20). Index hiện có không chứng minh đạt mục tiêu, đặc biệt truy vấn tìm kiếm substring (DEC-012).
+CONFIRMED: p95 < 500 ms cho đọc danh sách/tìm kiếm/playlist; bộ đo 1.000 track, 100 user, 200 playlist, 10 người dùng đồng thời; warm-up rồi đo 60 giây, cold start báo riêng. Cấu hình máy/runtime/DB, công cụ, warm-up bao lâu, request mix và cách lấy mẫu còn [DEC-015](../decisions/open-decisions.md#dec-015); chưa có protocol đủ để ghi PASS. Đo ở môi trường được ghi nhận, không tự áp ngưỡng local sang Internet. [TC-20](../testing/acceptance.md#tc-20).
 
 <a id="nfr-002"></a>
 
 ## NFR-002 Xác thực và kiểm soát truy cập
 
-Ý định: Bcrypt rounds 10, JWT ký có TTL 24 giờ, protected API yêu cầu Bearer token; kiểm tra role và quyền sở hữu, ngăn Listener upload hoặc truy cập quản trị. Không trả hash/mật khẩu hoặc token thật trong log/bằng chứng. Tính hiệu lực token sau thay đổi tài khoản/quyền theo [DEC-006](../decisions/open-decisions.md#dec-006); OTP theo DEC-003. Kiểm thử TC-01–TC-05/TC-11/TC-14/TC-15/TC-18.
+CONFIRMED: OTP email thật trước login; JWT gắn phiên PostgreSQL 24 giờ tuyệt đối, không refresh; cookie HttpOnly/Secure/SameSite=Lax khi online, CSRF. Kiểm tra user/quyền hiện tại, phiên và sở hữu; logout riêng phiên, khóa/đổi/reset mật khẩu thu hồi tất cả. Phiên DB còn hạn qua restart; DB lỗi không bỏ qua kiểm tra. Không trả hash/OTP/JWT trong JSON hoặc log bàn giao. Bổ sung CONFIRMED: Resend/HMAC PostgreSQL/scrypt async N=32768,r=8,p=3,maxmem=64 MiB/password 12–128/HS256 secret >=32 byte/soundwave_session/X-CSRF-Token/Origin theo BR-003. Còn IP limit/timeout email/key lifecycle/CSRF response/Domain/schema ở DEC-003/014/017/022; không dùng seed Bcrypt làm bằng chứng đích. TC-01–TC-05/TC-11/TC-14/TC-15/TC-18.
 
 <a id="nfr-003"></a>
 
-## NFR-003 Toàn vẹn và khả năng phục hồi
+## NFR-003 Toàn vẹn và phục hồi
 
-Ý định: dùng ràng buộc quan hệ, giữ liên kết khi soft delete, xử lý lỗi file–DB nhất quán. Schema và seed chưa chạy; không có backup được xác nhận. Có định hướng backup/restore bằng công cụ database nhưng retention, lịch, nơi lưu và bài thử restore còn thiếu ở [DEC-014](../decisions/open-decisions.md#dec-014), DEC-022. Kiểm thử TC-09/TC-13/TC-16/TC-19/TC-21.
+CONFIRMED: upload kiểm tra → chuyển file → ghi DB/COMMIT; rollback chắc chắn dọn mới, COMMIT không rõ phải đối chiếu; cleanup startup/30 phút, tuổi >24 giờ và kiểm tra active/tham chiếu kể cả soft delete; giao dịch playlist và lượt nghe nguyên tử, UNIQUE thứ tự kiểm commit/reorder ID hiển thị/ẩn cuối, cooldown trượt 30 phút/giữ bảy ngày, giữ hàng/liên kết/file khi soft delete; có một lần thử backup/restore thành công trước nghiệm thu. Chưa có backup hoặc schema đích đã chạy. Backup retention/lịch/nơi lưu/protocol restore và recovery state còn DEC-014/DEC-022. Không nhầm lịch cleanup đã chọn với retention backup chưa chọn. TC-09/TC-13/TC-16/TC-19/TC-21.
 
 <a id="nfr-004"></a>
 
-## NFR-004 Khả năng truy cập media
+## NFR-004 Media
 
-Có mục tiêu bắt đầu nghe trong không quá một giây và có thể seek; đây là mục tiêu tích hợp sản phẩm, chưa có SLA backend hoặc quy trình đo. Hợp đồng Range, truy cập file đã gỡ, cache, lỗi thiếu file, upload thất bại cần [DEC-009](../decisions/open-decisions.md#dec-009). Kích thước audio/ảnh dự kiến xem BR-005. Kiểm thử TC-08/TC-09/TC-17/TC-20; không kiểm tra giao diện trong bộ docs này.
+CONFIRMED: bắt đầu nghe ≤ 1 giây là phép đo tích hợp riêng, có seek/HTTP Range. Audio/ảnh theo BR-005 (30/5 MiB). Request audio mới phải bị từ chối sau gỡ track/khóa Creator; request đã bắt đầu được hoàn tất. File local máy chủ bền vững; không nhận thay audio trong MVP. GET/HEAD audio, single Range/status/header, no-store và lỗi 404/503 đã chọn; HEAD không body. ffprobe/FFmpeg/Sharp, duration ceiling INT cần được kiểm chứng CBR/VBR; làm tròn không bảo đảm sai số phép probe. Điểm đo/file/network, versions/limits và conditional HTTP/recovery state còn DEC-014/DEC-015/DEC-017/DEC-022. TC-08/TC-09/TC-17/TC-20; thời gian API metadata không chứng minh thời gian nghe.
 
 <a id="nfr-005"></a>
 
-## NFR-005 Khả năng tái hiện môi trường
+## NFR-005 Tái hiện môi trường và online
 
-Định hướng: demo được trên môi trường local thống nhất, ngân sách tiền mặt dự kiến 0 đồng. Từng được nêu Windows/macOS/Linux, Node 18+, npm 9+, PostgreSQL và các phiên bản khác nhau. Ma trận thực sự hỗ trợ chưa chốt (DEC-008/DEC-013/DEC-014). Hướng dẫn không được tuyên bố hỗ trợ môi trường chưa chạy thử. Xem [local setup](../development/local-setup.md) và TC-19/TC-21.
+CONFIRMED: phát triển local và sẵn sàng triển khai online; OTP email thật, media filesystem máy chủ. Đích Node.js 24 LTS/Express 5/JavaScript ESM/npm/pg/PostgreSQL 18, cùng origin/HTTPS khi online. Không yêu cầu toàn bộ demo offline. Resend HTTPS đã chọn, tài khoản/API key/domain gửi xác minh chưa có; hosting/volume/config/ma trận OS/lệnh còn DEC-003/014/016. Công cụ Zod/Multer/jose/scrypt/node-pg-migrate/node:test/fetch/ESLint đã chọn, chưa cài. Không tuyên bố đã deploy hoặc ngân sách online 0 đồng; chi phí lịch sử không là ngân sách được duyệt. [Thiết lập](../development/local-setup.md), TC-19/TC-21.
 
-## Nghiệm thu chất lượng
+## Điều kiện nghiệm thu
 
-Đích dự kiến không còn lỗi Critical trong luồng chính; có mô tả DoD yêu cầu không còn Critical/High. Phân loại lỗi, người nghiệm thu và phạm vi Must/Should còn DEC-001/DEC-015/DEC-016. Không gắn nhãn sẵn Pass cho kịch bản; ghi cả failure và phần bị chặn theo [chiến lược](../testing/strategy.md).
+Không còn Critical/High trong phạm vi MVP đã xác nhận; phải có bằng chứng từng kịch bản và một lần thử restore. Định nghĩa severity, người nghiệm thu, protocol phần còn thiếu theo DEC-015/DEC-016; chưa chọn bằng cách viết test. Chi tiết thiếu expected được báo BLOCKED khi thực thi; chưa chạy là NOT_RUN.
