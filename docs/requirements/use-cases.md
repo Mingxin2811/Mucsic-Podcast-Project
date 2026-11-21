@@ -23,9 +23,9 @@ Lựa chọn nghiệp vụ được xác nhận ngày 17/11/2026; từng phần 
 
 ## UC01 Đăng ký tài khoản
 
-**CONFIRMED:** username/email/password tạo Listener email_verified_at NULL/chưa login, email trim/lowercase UNIQUE; password 12–128 ký tự/cho khoảng trắng/không trim. Resend HTTPS/OTP digest HMAC PostgreSQL; sáu số/năm phút/một lần/ba sai, resend 60 giây hủy cũ, tối đa 5 lần gửi/email/giờ và IP limit. Mail lỗi giữ user chưa xác minh/cho resend/không tạo trùng; verify xong login riêng.
+**CONFIRMED** — Tạo Listener có `email_verified_at` là `NULL`. Username 2–50 ký tự sau trim và có thể trùng. Email trim/lowercase và duy nhất. Password 12–128 ký tự, giữ nguyên khi xác minh. OTP qua Resend, sáu số/hạn năm phút/dùng một lần/ba lần sai. Gửi lại sau 60 giây vô hiệu hóa mã cũ. Tối đa 5 lượt đã ghi/email/giờ và có IP limit. Mail lỗi giữ user chưa xác minh và cho gửi lại. User đăng nhập riêng sau xác minh. [Vòng đời OTP](../architecture/security-and-media.md#otp-delivery).
 
-[API-01](../api/auth.md#api-01), [API-30](../api/auth.md#api-30), [API-31](../api/auth.md#api-31); BR-002/003; TC-01/02. **Còn thiếu:** DEC-003/005/017/022: IP limit/timeout/đăng ký lại/status-response/field/schema. Chưa có tài khoản/API key/domain Resend; mock không thay email thật.
+BR-002/003 và TC-01/02. Còn IP limit, `reserved`, timeout cụ thể, đăng ký lại, status/response và chi tiết wire ở DEC-003/005/017/022. Nghiệm thu email thật cần tài khoản, API key và domain gửi xác minh. [API-01](../api/auth.md#api-01), [API-30](../api/auth.md#api-30), [API-31](../api/auth.md#api-31).
 
 <a id="uc02"></a>
 
@@ -33,7 +33,7 @@ Lựa chọn nghiệp vụ được xác nhận ngày 17/11/2026; từng phần 
 
 **CONFIRMED:** login email/password khi verified/chưa khóa; JWT HS256/jose + auth_sessions 24 giờ/cookie soundwave_session, không refresh. Mỗi request kiểm phiên/user/quyền DB; logout riêng phiên, khóa/đổi/reset thu hồi tất cả, mở khóa login lại, approve quyền request kế tiếp. scrypt/CSRF/Origin theo BR-003/[security](../architecture/security-and-media.md).
 
-Reset qua Resend OTP cho user verified/chưa khóa, yêu cầu phản hồi chung; verify/reset không tự login. Đổi nhận currentPassword/newPassword. [Auth API](../api/auth.md), API-32/33/34/39; TC-03/04/05. DEC-003/005/014/017/022 còn wire/timeout/CSRF response-lifecycle/Origin thiếu/Domain/schema-lock order. DB lỗi không bỏ xác thực.
+Reset dùng Resend OTP cho user đã xác minh và chưa khóa, phản hồi yêu cầu chung. User đăng nhập riêng sau verify/reset. Đổi nhận `currentPassword` và `newPassword`. Login kiểm lại hash dưới khóa hàng user, reset đổi hash/đánh dấu OTP/thu hồi phiên cùng transaction. DEC-003/005/014/017 còn wire, timeout cụ thể, `reserved`, CSRF response, Origin và Domain. TC-03/04/05. [Auth API](../api/auth.md), [giao dịch auth](../architecture/security-and-media.md#auth-transaction-order).
 
 <a id="uc03"></a>
 
@@ -125,4 +125,4 @@ Shuffle/repeat/tua 15 giây/tốc độ thuộc client, không API mới. [API-0
 
 **CONFIRMED:** Listener verified/login nộp [API-35](../api/creator-applications.md#api-35), một pending/user/pending bất biến. Admin duyệt application ID qua [API-25](../api/admin.md#api-25)/khóa hàng hồ sơ; approve role creator/approved, reject không upload. Rejected POST hồ sơ mới/giữ lịch sử qua [API-36](../api/creator-applications.md#api-36); ngày nộp khác user.created_at, có reviewer/ngày/lý do. Kênh duyệt sửa tên/bio [API-37](../api/creator-applications.md#api-37)/không đổi quyền. users.role nguồn quyền/creatorStatus suy ra hồ sơ/quyền request kế tiếp.
 
-BR-002, DEC-002/007/018 đã chốt; DEC-005/017/022 còn field/body/response/mapping trạng thái-kênh/transaction cạnh tranh; TC-18.
+BR-002 và DEC-002/007/018 đã chốt. Schema suy trạng thái từ hồ sơ mới nhất và lưu riêng kênh hiện tại trên hồ sơ đã duyệt. Field/body/response và giao dịch cạnh tranh còn DEC-005/017/022. [Schema](../architecture/data-model.md#target-model), TC-18.

@@ -24,17 +24,17 @@ CONFIRMED: Admin không khóa chính mình hoặc Admin khác trong MVP. Role kh
 
 CONFIRMED: đăng ký Listener, xác minh email rồi login/nộp hồ sơ riêng. none/rejected → pending; pending → approved/rejected. Một pending/user, pending không sửa; rejected nộp mới/giữ lịch sử. Hồ sơ có tên kênh/bio/lĩnh vực/ngày gửi/người-ngày duyệt/lý do từ chối; kênh đã duyệt sửa tên/bio không đổi quyền.
 
-users.role là nguồn quyền, creatorStatus suy ra hồ sơ thay hai trạng thái độc lập. API-25 dùng application ID/khóa hàng hồ sơ khi review; API-35/36/37 nộp/xem lịch sử/sửa kênh. Cột/mapping trạng thái-kênh/wire còn DEC-005/017/022; không dùng user.created_at làm ngày nộp.
+`users.role` là nguồn quyền. `creatorStatus` suy từ hồ sơ mới nhất hoặc `none` nếu chưa có hồ sơ. API-25 dùng application ID/khóa hàng hồ sơ khi review. API-35/36/37 nộp, xem lịch sử và sửa dữ liệu kênh hiện tại. Ngày nộp được lưu trên hồ sơ. Chi tiết wire và thứ tự khóa còn DEC-005/017/022. [Schema](../architecture/data-model.md#target-model).
 
 <a id="br-003"></a>
 
 ## BR-003 Tài khoản và phiên
 
-CONFIRMED: email trim/lowercase UNIQUE, user mới email_verified_at NULL/chưa login. Resend HTTPS gửi OTP thật, digest HMAC/secret riêng/số thử/thời hạn trong PostgreSQL. Sáu số/năm phút/một lần/ba sai; resend sau 60 giây hủy cũ; tối đa 5 lần gửi/email/giờ, thêm IP limit (ngưỡng chưa chốt). Mail lỗi giữ user chưa xác minh/cho resend/không tạo trùng. Reset chỉ user đã xác minh/chưa khóa, yêu cầu phản hồi chung không tiết lộ email; verify/reset không tự login. Gửi timeout/đăng ký lại/transaction/wire còn [DEC-003](../decisions/open-decisions.md#dec-003).
+CONFIRMED: username 2–50 ký tự sau trim và có thể trùng, email trim/lowercase và duy nhất, user mới có `email_verified_at` là `NULL` và chưa thể login. Resend HTTPS gửi OTP thật, digest HMAC và số lần thử/thời hạn lưu trong PostgreSQL. Mã sáu số, hạn năm phút, dùng một lần, vô hiệu hóa ở lần sai thứ ba. Gửi lại sau 60 giây vô hiệu hóa mã cũ. Giới hạn 5 lượt đã ghi/email/giờ, thêm IP limit. Reset chỉ dành cho user đã xác minh và chưa khóa, với phản hồi chung. User đăng nhập riêng sau verify/reset. [Vòng đời OTP](../architecture/security-and-media.md#otp-delivery) ghi cách xử lý gửi lỗi hoặc timeout. IP limit, `reserved`, timeout cụ thể và đăng ký lại còn [DEC-003](../decisions/open-decisions.md#dec-003).
 
 Password 12–128 ký tự, cho khoảng trắng/không trim/không ép ký tự đặc biệt. scrypt bất đồng bộ Node, N=32768,r=8,p=3,maxmem=64 MiB, salt riêng/password/lưu thông số cùng hash. Tên 2–50 ký tự cũ vẫn DRAFT; seed Bcrypt chưa chuyển/kiểm chứng. Không trả hash/OTP/JWT trong JSON hoặc log bàn giao.
 
-JWT HS256/jose, secret ngẫu nhiên >=32 byte qua môi trường; auth_sessions 24 giờ tuyệt đối/nhiều phiên/không refresh. Logout riêng phiên; khóa/đổi/reset thu hồi tất cả; mở khóa phải login lại. Mỗi request kiểm phiên/user/quyền DB, DB lỗi không bỏ kiểm tra. Cookie soundwave_session/HttpOnly/SameSite=Lax/path=/, Secure online, HTTP local được tắt riêng Secure. Protected request ghi gửi X-CSRF-Token ngẫu nhiên lưu cùng phiên/lấy API-39; kiểm tra Origin, auth trước login chỉ JSON/kiểm Origin. [Security](../architecture/security-and-media.md) sở hữu chi tiết; DEC-014/017/022 còn wire/config/schema.
+JWT HS256/jose dùng secret ngẫu nhiên 32 byte qua môi trường. Phiên độc lập hết hạn tuyệt đối sau 24 giờ, không refresh. Logout thu hồi phiên hiện tại. Khóa/đổi/reset mật khẩu thu hồi các phiên của user, đổi khóa ký thu hồi các phiên hiện có. Mở khóa yêu cầu đăng nhập lại. Mỗi request kiểm phiên/user/quyền DB, DB lỗi trả lỗi dịch vụ. Cookie `soundwave_session` dùng HttpOnly/SameSite=Lax/path=/, Secure online. Protected request ghi gửi `X-CSRF-Token` ổn định theo phiên, lấy qua API-39. Kiểm Origin, auth trước login dùng JSON. Chi tiết wire còn DEC-017. [Giao dịch auth](../architecture/security-and-media.md#auth-transaction-order).
 
 <a id="br-004"></a>
 

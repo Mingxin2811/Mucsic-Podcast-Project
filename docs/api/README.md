@@ -63,12 +63,12 @@ Hiện hành sau [xác nhận phương án đơn giản 17/11/2026](../decisions
 
 | Nhóm | Đã chốt | Chi tiết OPEN thực sự còn thiếu |
 | --- | --- | --- |
-| OTP/email | Resend HTTPS/HMAC PostgreSQL/user chưa xác minh/API-30–34 | IP rate limit/counters, timeout/gửi lỗi/đăng ký lại/status-body-response đầy đủ: DEC-003/005/017/022 |
-| Auth | HS256/scrypt/cookie/local/CSRF token-header/API-39 | Key lifecycle/hash format, Domain, response-cấp lại-thu hồi CSRF/Origin thiếu/phạm vi public mutation: DEC-014/017/022 |
-| Creator | API-35/36/37 và application ID API-25/role DB/hồ sơ lịch sử | Body/field lĩnh vực-lý do/response/mapping trạng thái-kênh/cột/transaction: DEC-005/017/022 |
-| Playlist | API-38 ID hiển thị/ẩn cuối-hiện lại cuối/tập đổi 409/UNIQUE lúc commit | Response/validation lỗi, thêm-gỡ lặp, DDL/lock order trạng thái track-chủ: DEC-005/017/022 |
-| Lượt nghe | listenedSeconds >=10/trượt 30 phút/Guest UUID ký/login đổi ID/lặp 200-counted:false/giữ bảy ngày | Cookie Guest, numeric/status chưa đủ điều kiện/response đầy đủ/schema/đếm cạnh tranh/job: DEC-014/017/022 |
-| Search/text | search_text/100 ký tự-10 từ/AND không thứ tự/escape literal; BR-006 text limits | Validation nhận diện HTML/đếm ký tự/field/error cụ thể, Trending type shape; migration/index/protocol đo: DEC-017/022/015 |
+| OTP/email | Resend HTTPS/HMAC PostgreSQL, user chưa xác minh, API-30–34, [ghi lượt gửi và xử lý kết quả](../architecture/security-and-media.md#otp-delivery) | IP limit và phạm vi đếm, timeout cụ thể, `reserved` bị gián đoạn, đăng ký lại, status/body/response và phản hồi khi provider lỗi. DEC-003/005/017/022. |
+| Auth | HS256/scrypt, cookie và token CSRF ổn định trong phiên, API-39, [schema khởi tạo và giao dịch](../architecture/data-model.md#initial-auth-schema) | Cookie Domain, response/headers CSRF, Origin thiếu/sai và phạm vi public mutation. Còn cách mã hóa chuỗi hash và phối hợp đổi khóa online. DEC-014/017. |
+| Creator | API-35/36/37, application ID API-25, role DB, hồ sơ mới nhất và kênh hiện tại | Body/field lĩnh vực-lý do/response và giao dịch review. DEC-005/017/022. |
+| Playlist | API-38 ID hiển thị/ẩn cuối-hiện lại cuối/tập đổi 409, UNIQUE lúc commit trong DDL | Response/validation lỗi, thêm-gỡ lặp và lock order trạng thái track-chủ. DEC-005/017/022. |
+| Lượt nghe | listenedSeconds >=10/trượt 30 phút/Guest UUID ký/login đổi ID/lặp 200-counted:false/giữ bảy ngày, khóa cooldown trong DDL | Cookie Guest, numeric/status chưa đủ điều kiện/response đầy đủ, đếm cạnh tranh và job. DEC-014/017/022. |
+| Search/text | search_text/100 ký tự-10 từ/AND không thứ tự/escape literal, BR-006 text limits và index mới nhất/trending | Validation nhận diện HTML/đếm ký tự/field/error cụ thể, Trending type shape và protocol đo trước khi cân nhắc `pg_trgm`. DEC-017/015. |
 | Media | API-28/29 và lifecycle/ffprobe-FFmpeg-Sharp đã chốt | Versions/timeout/concurrency/ảnh, MIME/multipart/remove cover/retry/conditional HTTP/error phụ, active-COMMIT-dọn chống race: DEC-014/017/022 |
 
 [DEC-010/012/019/021](../decisions/open-decisions.md#evidence-simple-2026-11-17) ACCEPTED ở semantics; không xin chốt lại chúng chỉ vì wire/schema khác còn thiếu. Restore/thay audio/new-releases riêng/users-profile trùng ngoài MVP; không thêm alias cũ. [Schema đích](../architecture/data-model.md#target-model), [truy xuất](../requirements/traceability.md), [kiểm thử](../testing/acceptance.md).

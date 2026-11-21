@@ -1,6 +1,6 @@
 # Chiến lược kiểm thử backend và database
 
-Đồng bộ 17/11/2026: lựa chọn nghiệp vụ CONFIRMED theo [sổ DEC](../decisions/open-decisions.md#evidence-2026-11-17), protocol/wire chưa đủ vẫn DRAFT. Chưa có test runner hoặc ứng dụng để thực thi; mọi kịch bản trong [acceptance](acceptance.md) hiện `NOT_RUN`. Đây là thiết kế kiểm chứng, không phải báo cáo kết quả.
+Lựa chọn nghiệp vụ `CONFIRMED` theo [sổ DEC](../decisions/open-decisions.md). Protocol và wire chưa đủ giữ `DRAFT`. Đã có `node:test` cho bootstrap HTTP và migration đầu tiên. Các TC nghiệp vụ đầy đủ vẫn `NOT_RUN`. [Nghiệm thu](acceptance.md), [bằng chứng bootstrap](../project/status.md#backend-bootstrap-run-2026-11-18).
 
 ## Phạm vi
 
@@ -22,7 +22,7 @@ Kiểm thử tài khoản, API, phân quyền và sở hữu, lifecycle dữ li�
 
 Chuẩn bị fixture riêng: user chưa/đã xác minh email, email provider thử và cookie/CSRF; Listener A/B; Creator A/B đã duyệt; user pending/rejected/locked; Admin; track music/podcast/đã gỡ; playlist của hai user; genre đang được tham chiếu; MP3 CBR/VBR, giả đuôi/sai codec/lỗi giải mã, cover default/shared, file hợp lệ/quá giới hạn/sai nội dung và file không tồn tại. Đây là nhu cầu test, chưa phải tài khoản/file được tạo.
 
-Không mặc định seed hiện tại là fixture hợp lệ. Hash, đường dẫn, quyền sử dụng và quan hệ metadata cần [DEC-020](../decisions/open-decisions.md#dec-020), [TC-19](acceptance.md#tc-19). Không chạy reset SQL trên dữ liệu cần giữ. PostgreSQL 18 và test runner tích hợp Node đã chọn; fetch HTTP/DB thử riêng đã chọn, cách cô lập/lệnh còn DEC-014. Resend đã chọn nhưng tài khoản/API key/domain xác minh và hosting chưa có, không gọi mock mail là nghiệm thu email thật.
+Seed demo, hash, quyền sử dụng file và quan hệ metadata cần DEC-020. Lệnh đích `npm test` đọc `.env.test`, yêu cầu `TEST_DATABASE_URL`, áp migration và chạy `node:test` với HTTP `fetch`. Chạy tuần tự khi dùng chung DB thử. Tách fixture test khỏi seed demo, dùng Resend giả lập trong test tích hợp và Resend thật khi nghiệm thu email. [Thiết lập local](../development/local-setup.md), [DEC-020](../decisions/open-decisions.md#dec-020), [TC-19](acceptance.md#tc-19).
 
 ## Phụ thuộc quyết định
 
@@ -70,4 +70,4 @@ Các failpoint upload phải phân biệt rollback đã biết với COMMIT khô
 
 Nguồn [xác nhận](../decisions/open-decisions.md#evidence-simple-2026-11-17), không có runtime mới. node:test/fetch/PostgreSQL thử riêng/ESLint là công cụ đích. Cần fixture password biên 12–128/có khoảng trắng và scrypt salt khác nhau; Resend thật, user email_verified_at NULL, HMAC OTP/lượt gửi/cooldown; cookie soundwave_session/HS256/CSRF header-Origin; keyword 100 ký tự-10 từ/đ-Đ/Unicode/literal wildcard/search_text cập nhật cùng metadata; text theo type/HTML/rỗng-null; Guest UUID ký/login chuyển ID/cooldown trượt-bảy ngày; reorder hiển thị/ẩn cuối-hiện lại cuối/tập đổi 409/hai reorder hợp lệ tuần tự/UNIQUE lúc commit.
 
-Điều khiển clock và interleaving transaction để kiểm cooldown/thứ tự/quyền, không chỉ HTTP happy path. listenedSeconds client không chứng minh nghe thật, Guest→user có thể thêm lượt là đánh đổi đã chấp nhận. Các nhánh IP limit/timeout email/CSRF response/Origin policy/schema-lock order chưa đủ expected báo BLOCKED theo DEC-003/005/014/017/022 khi thực thi. Không phát minh giá trị để chạy test.
+Điều khiển clock và thứ tự thực thi transaction để kiểm cooldown, thứ tự và quyền. Kiểm tra login đang xử lý khi reset commit, OTP gửi đồng thời, kết quả `failed`/`unknown` và CSRF token ổn định. Client `listenedSeconds` là tín hiệu do client báo và Guest chuyển user có thể thêm lượt. Khi thực thi nhánh thiếu expected về IP limit, `reserved`, CSRF response, Origin hay thứ tự khóa ngoài auth, ghi `BLOCKED` cùng DEC-003/005/014/017/022 tương ứng. [Giao dịch auth](../architecture/security-and-media.md#auth-transaction-order), [vòng đời OTP](../architecture/security-and-media.md#otp-delivery).

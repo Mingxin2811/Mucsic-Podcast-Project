@@ -15,4 +15,8 @@ Quy tắc nhận việc ở [workflow](../development/workflow.md), hiện trạ
 
 Đợt bổ sung hợp đồng audio/upload sau xác nhận: [media contracts 17/11](2026-11-17-media-contracts.md). Kế hoạch đồng bộ trước đó giữ kết quả tại thời điểm hoàn tất; số API/DEC mới xem status và kế hoạch media.
 
-Đợt hiện hành: [đồng bộ phương án backend đơn giản](2026-11-17-simple-backend-decisions.md), giữ riêng bằng chứng DOCSYNC-20261117-03 với hai snapshot trước.
+Đợt [đồng bộ phương án backend đơn giản](2026-11-17-simple-backend-decisions.md) giữ riêng bằng chứng DOCSYNC-20261117-03 với hai snapshot trước.
+
+Ngày 18/11: [đồng bộ quyết định bootstrap/schema tài khoản](2026-11-18-backend-bootstrap-decisions.md) và [triển khai bootstrap/migration đầu tiên](2026-11-18-implement-backend-bootstrap.md).
+
+Ngày 20/11: [gom schema nghiệp vụ vào một migration](2026-11-20-consolidate-database-migration.md) theo ADR-0007.

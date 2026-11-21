@@ -154,3 +154,48 @@ Lệnh thực chạy: `python "$env:TEMP\soundwave-validate-simple-docs.py"`. Sc
 ## Phạm vi migration đầu tiên xác nhận ngày 18/11/2026
 
 Chuỗi migration bắt đầu trên PostgreSQL 18 trống để dựng schema đích. Chuyển dữ liệu cũ nằm ngoài phạm vi khởi tạo và seed demo chạy riêng. DEC-022 vẫn `OPEN` cho chi tiết schema vật lý và giao dịch. Migration vẫn `NOT_IMPLEMENTED` và TC-19 vẫn `NOT_RUN`. [Xác nhận DEC-022](../decisions/open-decisions.md#evidence-initial-migration-2026-11-18).
+
+<a id="bootstrap-auth-2026-11-18"></a>
+
+## Xác nhận bootstrap và schema tài khoản ngày 18/11/2026
+
+Người dùng đã chốt baseline Node.js 24.22.3 LTS/PostgreSQL 18.7, cấu hình và lệnh dev/start/migrate/test/lint, schema ba bảng trong migration đầu tiên, thứ tự khóa auth và trạng thái gửi OTP. Có 39 API-ID, 14 DEC `ACCEPTED`, 8 DEC `OPEN` và 6 ADR. [Xác nhận](../decisions/open-decisions.md#evidence-bootstrap-auth-2026-11-18), [kế hoạch](../plans/2026-11-18-backend-bootstrap-decisions.md).
+
+Phần còn mở gồm IP limit, xử lý `reserved` bị gián đoạn, đăng ký lại, wire HTTP, phiên bản dependency thực tế, schema các luồng sau và vận hành media/online. Backend và migration vẫn `NOT_IMPLEMENTED`. 21 TC vẫn `NOT_RUN`.
+
+Kiểm tra tĩnh ngày 18/11/2026 trên Windows/PowerShell, Python 3.14.0, nền `ed7a22c` và working tree của đợt này. Script qua stdin kiểm tra đọc UTF-8, code fence và liên kết/anchor nội bộ của 40 file Markdown. Đối chiếu 39 API-ID, 22 DEC, 6 ADR, 21 TC, biến môi trường và lệnh đích, cột/index của ba bảng, các trạng thái OTP và liên kết giao dịch auth. `git diff --check` và kiểm tra whitespace từng file mới đều không báo lỗi. Diff trong `backend/`, `frontend/`, `database/`, `document/` rỗng. Không có lần chạy ứng dụng, email hoặc SQL.
+
+<a id="backend-bootstrap-run-2026-11-18"></a>
+
+## Triển khai bootstrap backend và migration đầu tiên ngày 18/11/2026
+
+Run ID **BOOTSTRAP-20261118-01**, ngày 18/11/2026, Asia/Saigon. Phạm vi checkout là `ed7a22c` cùng working tree. Môi trường Windows/PowerShell, Node.js **24.14.1**, npm **11.11.0**, PostgreSQL **18.4**. `initdb` và `pg_ctl` chạy cụm thử biệt lập trên loopback cổng 55432. Hai DB trống cuối cùng dùng riêng để kiểm lệnh migrate/rollback và `npm test`. Tiến trình HTTP kiểm tra ở loopback, cổng 55431 hoặc cổng tạm trong test. Đã dừng và dọn cụm thử sau khi chạy.
+
+Tại snapshot này, bootstrap, test tích hợp và migration `20261118000000000_create-account-schema` là `PRESENT`. Các bản khóa trực tiếp gồm Express 5.3.0, pg 8.23.1, Zod 4.6.7, jose 6.2.17, node-pg-migrate 9.0.0, ESLint 10.15.0, @eslint/js 10.0.1 và globals 17.14.0. [Lockfile](../../backend/package-lock.json), [kế hoạch](../plans/2026-11-18-implement-backend-bootstrap.md). Migration tại snapshot này được thay ở mốc 20/11.
+
+| Kiểm tra | Kết quả | Bằng chứng quan sát |
+| --- | --- | --- |
+| `npm ci --offline --ignore-scripts --no-fund --no-audit` và `npm run lint` | `PASS` | Cài từ lockfile trên bản sao tạm với npm cache, 180 package. ESLint thoát 0 ở repo và bản sao. |
+| `npm start`, `npm run dev` | `PASS` | Start nhận biến môi trường, dev đọc `.env` và khởi động ở Node watch. Backend kết nối DB, lắng nghe HTTP và `GET /` trả 404 mặc định. |
+| `npm run migrate` hai lần trên DB trống | `PASS` | Lần đầu áp `20261118000000000_create-account-schema`. Lần hai báo không có migration. |
+| `node ./node_modules/node-pg-migrate/bin/node-pg-migrate.js down`, rồi `npm run migrate` | `PASS` | Trên DB thử do lượt này tạo, rollback để lại 0 bảng tài khoản và 0 mục lịch sử. Lần `up` sau tạo lại thành công. |
+| `npm test` và `psql` đọc catalog/count | `PASS` | Lượt xác nhận trên DB trống khác có 3 test qua, 0 fail. Đối chiếu bảng, cột, null/default, identity, index và ràng buộc chính. Sau rollback fixture, số hàng `pgmigrations/users/otp_challenges/auth_sessions` là `1/0/0/0`. |
+| `npm test` với URL thử thiếu hoặc cùng đích dev | `PASS` | Mỗi trường hợp bị từ chối với mã thoát 1 trước khi chạy migration. |
+| Liên kết docs, lockfile, mẫu env và `git diff --check` | `PASS` | Kiểm tra 41 file Markdown và 1109 liên kết nội bộ, khớp manifest/lockfile, các giá trị bí mật mẫu để trống, `.env`/`.env.test`/`node_modules` được ignore. Diff SQL cũ, frontend và `document/` rỗng. |
+
+Lần chạy đầu của test tích hợp có 2 qua, 1 lỗi kỳ vọng vì PostgreSQL trả `23001` cho `ON DELETE RESTRICT`. Đã sửa expected và kiểm chứng lại trên DB trống mới. Phần migration đầu tiên của TC-19 đã `PASS`. Toàn bộ TC-19 và các TC nghiệp vụ vẫn `NOT_RUN`. Baseline chính xác Node.js 24.22.3/PostgreSQL 18.7, tự động reload khi sửa file, auth/OTP, DDL/seed reset cũ, seed demo, các bảng sau và deploy chưa được kiểm chứng.
+
+<a id="single-database-migration-2026-11-20"></a>
+
+## Một migration khởi tạo chín bảng ngày 20/11/2026
+
+Run ID **SCHEMA-20261120-01**, Asia/Saigon. Windows/PowerShell, Node.js 24.14.1, npm 11.11.0 và PostgreSQL 18.4. Hai DB trống thuộc cùng cụm PostgreSQL tạm trên loopback, một DB cho CLI và một DB cho test. Cụm đã dừng và được dọn. [Migration duy nhất](../../backend/migrations/20261120000000000_create-initial-schema.js), [test](../../backend/test/bootstrap.test.js), [ADR-0007](../decisions/adr-0007-single-initial-database-migration.md).
+
+| Kiểm tra | Kết quả | Quan sát |
+| --- | --- | --- |
+| `npm run lint` | `PASS` | ESLint thoát 0. |
+| `npm run migrate` hai lần | `PASS` | Lần đầu áp một migration. Lần hai báo không có migration. |
+| `npm test` | `PASS` | 4 qua, 0 lỗi. HTTP bootstrap trả 404 mặc định. Catalog có chín bảng nghiệp vụ, một dòng lịch sử. Kiểm ràng buộc tài khoản/OTP, Creator pending và snapshot, genre FK, duration, văn bản, định danh cooldown và vị trí playlist deferred. |
+| `node ./node_modules/node-pg-migrate/bin/node-pg-migrate.js down --quiet` và `npm run migrate` | `PASS` | Sau `down`, `psql` đếm 0 bảng nghiệp vụ và 0 dòng lịch sử. Áp lại thành công. |
+
+Phần DDL khởi tạo của TC-19 đã chạy. Toàn bộ TC-19 còn seed/demo. Chưa kiểm chứng seed cũ, migration giữ dữ liệu cho DB đã áp schema ba bảng, baseline chính xác 18.7, API nghiệp vụ hoặc recovery media. [Kế hoạch](../plans/2026-11-20-consolidate-database-migration.md).

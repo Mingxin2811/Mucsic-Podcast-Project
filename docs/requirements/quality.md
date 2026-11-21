@@ -12,7 +12,7 @@ CONFIRMED: p95 < 500 ms cho đọc danh sách/tìm kiếm/playlist; bộ đo 1.0
 
 ## NFR-002 Xác thực và kiểm soát truy cập
 
-CONFIRMED: OTP email thật trước login; JWT gắn phiên PostgreSQL 24 giờ tuyệt đối, không refresh; cookie HttpOnly/Secure/SameSite=Lax khi online, CSRF. Kiểm tra user/quyền hiện tại, phiên và sở hữu; logout riêng phiên, khóa/đổi/reset mật khẩu thu hồi tất cả. Phiên DB còn hạn qua restart; DB lỗi không bỏ qua kiểm tra. Không trả hash/OTP/JWT trong JSON hoặc log bàn giao. Bổ sung CONFIRMED: Resend/HMAC PostgreSQL/scrypt async N=32768,r=8,p=3,maxmem=64 MiB/password 12–128/HS256 secret >=32 byte/soundwave_session/X-CSRF-Token/Origin theo BR-003. Còn IP limit/timeout email/key lifecycle/CSRF response/Domain/schema ở DEC-003/014/017/022; không dùng seed Bcrypt làm bằng chứng đích. TC-01–TC-05/TC-11/TC-14/TC-15/TC-18.
+CONFIRMED: OTP email thật trước login, JWT gắn phiên PostgreSQL 24 giờ tuyệt đối, không refresh. Cookie HttpOnly/Secure/SameSite=Lax khi online và bảo vệ CSRF. Kiểm tra user/quyền hiện tại, phiên và sở hữu. Logout thu hồi phiên hiện tại. Khóa/đổi/reset mật khẩu thu hồi các phiên của user. Đổi khóa JWT thu hồi các phiên hiện có. Phiên còn hạn tồn tại qua restart. DB lỗi trả lỗi dịch vụ. Hash/OTP/JWT không xuất hiện trong JSON hoặc log bàn giao. Cấu hình Resend/HMAC/scrypt, secret, cookie và giao dịch auth được mô tả trong tài liệu xác thực. IP limit, timeout cụ thể, `reserved`, phối hợp đổi khóa online và wire CSRF/Domain còn DEC-003/014/017/022. TC-01–TC-05/TC-11/TC-14/TC-15/TC-18. [Xác thực](../architecture/security-and-media.md), [BR-003](business-rules.md#br-003).
 
 <a id="nfr-003"></a>
 
@@ -30,7 +30,7 @@ CONFIRMED: bắt đầu nghe ≤ 1 giây là phép đo tích hợp riêng, có s
 
 ## NFR-005 Tái hiện môi trường và online
 
-CONFIRMED: phát triển local và sẵn sàng triển khai online; OTP email thật, media filesystem máy chủ. Đích Node.js 24 LTS/Express 5/JavaScript ESM/npm/pg/PostgreSQL 18, cùng origin/HTTPS khi online. Không yêu cầu toàn bộ demo offline. Resend HTTPS đã chọn, tài khoản/API key/domain gửi xác minh chưa có; hosting/volume/config/ma trận OS/lệnh còn DEC-003/014/016. Công cụ Zod/Multer/jose/scrypt/node-pg-migrate/node:test/fetch/ESLint đã chọn, chưa cài. Không tuyên bố đã deploy hoặc ngân sách online 0 đồng; chi phí lịch sử không là ngân sách được duyệt. [Thiết lập](../development/local-setup.md), TC-19/TC-21.
+CONFIRMED: phát triển local và sẵn sàng triển khai online, OTP email thật, media trên filesystem máy chủ. Baseline Node.js 24.22.3 LTS/PostgreSQL 18.7, Express 5, JavaScript ESM/npm và `pg`. Bootstrap local/migrate/test đã kiểm chứng với DB thử riêng. Online cần cùng origin/HTTPS và tài khoản, khóa, domain gửi Resend. Hosting/volume/cấu hình online và ma trận OS còn DEC-014/016. Ngân sách online chưa được duyệt. [Thiết lập](../development/local-setup.md), [kết quả bootstrap](../project/status.md#backend-bootstrap-run-2026-11-18), TC-19/TC-21.
 
 ## Điều kiện nghiệm thu
 
