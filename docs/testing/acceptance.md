@@ -34,11 +34,11 @@ Trạng thái tất cả kịch bản: **NOT_RUN**. Đồng bộ ngày 17/11/202
 
 Trạng thái: `NOT_RUN`.
 
-**Đầu vào và thao tác:** API-01, API-30/31; email trùng/khác hoa thường, password 11/12/128/129 ký tự/có khoảng trắng, gửi mail lỗi/đăng ký lại.
+**Đầu vào và thao tác** — API-01, API-30/31. Thử username trùng và các biên 1/2/50/51 ký tự sau trim, email trùng hoặc khác hoa thường, password 11/12/128/129 ký tự, password có khoảng trắng, gửi lỗi và đăng ký lại.
 
-**Expected theo lựa chọn đã xác nhận:** User mới email_verified_at NULL, login bị chặn trước verify; Resend thật/không tự login sau verify. Email trim/lowercase, password 12–128/không trim, không lộ hash/OTP/JWT, gửi lỗi giữ unverified/không tạo trùng.
+**Expected theo lựa chọn đã xác nhận** — User mới có `email_verified_at` là `NULL`, phải xác minh qua Resend thật trước khi đăng nhập. Username 2–50 ký tự sau trim và có thể trùng. Email trim/lowercase và duy nhất. Password 12–128 ký tự được giữ nguyên, hash/OTP/JWT được bảo vệ. Gửi lỗi giữ user chưa xác minh và không tạo trùng tài khoản.
 
-**Chi tiết chưa chốt/phụ thuộc:** DEC-003/005/017/022: đăng ký lại/timeout/status-response/username validation/schema. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+**Chi tiết chưa chốt/phụ thuộc** — Đăng ký lại, timeout cụ thể, status và response còn DEC-003/005/017. [Hợp đồng còn thiếu](../api/README.md#contract-gaps).
 
 **Bằng chứng cần có:** Request đã che password, user trước-sau verify/Resend mail đã che mã; không coi response tiếp nhận là active.
 
@@ -50,9 +50,9 @@ Trạng thái: `NOT_RUN`.
 
 **Đầu vào và thao tác:** Resend thực, verify {email,otp}, OTP đúng/sai 1–3/hết năm phút/dùng lại, resend trước-sau 60 giây/mã cũ; sáu lần gửi/email/giờ, concurrency/provider timeout.
 
-**Expected theo lựa chọn đã xác nhận:** Sáu số/một lần/năm phút/ba sai, resend hủy cũ/cooldown 60 giây/giới hạn 5 lần gửi-email-giờ. PostgreSQL lưu HMAC digest/secret riêng/số thử-thời hạn; lỗi mail giữ unverified/cho resend/không tạo trùng.
+**Expected theo lựa chọn đã xác nhận** — Mã sáu số, một lần, hạn năm phút, lần sai thứ ba đồng thời vô hiệu hóa. Gửi lại sau 60 giây vô hiệu hóa mã cũ. Tối đa 5 lượt đã ghi/email/giờ, kể cả lượt gửi lỗi. Ghi mã trước khi gọi Resend. Lỗi xác định vô hiệu hóa mã, giữ user chưa xác minh. Timeout chưa rõ kết quả giữ mã đủ điều kiện xác minh đến khi hết hạn hoặc bị thay. [Vòng đời OTP](../architecture/security-and-media.md#otp-delivery).
 
-**Chi tiết chưa chốt/phụ thuộc:** DEC-003/005/017/022: IP threshold/cửa sổ-count gửi/timeout trạng thái mã/response/atomic update. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+**Chi tiết chưa chốt/phụ thuộc** — IP limit và phạm vi đếm, timeout cụ thể, xử lý `reserved` bị gián đoạn và wire còn DEC-003/005/017/022. [Hợp đồng còn thiếu](../api/README.md#contract-gaps).
 
 **Bằng chứng cần có:** Clock/counters/user/OTP đã che trước-sau, email thật đã che mã, không dùng mock làm bằng chứng gửi mail thật.
 
@@ -64,9 +64,9 @@ Trạng thái: `NOT_RUN`.
 
 **Đầu vào và thao tác:** API-02/04/39, verified/unverified/banned, password đúng-sai/có khoảng trắng, hai login, HTTP local và HTTPS online.
 
-**Expected theo lựa chọn đã xác nhận:** Chỉ verified/chưa khóa login; scrypt async/salt riêng/thông số lưu đúng lựa chọn, JWT HS256/jose/24 giờ tuyệt đối, soundwave_session/HttpOnly/SameSite=Lax/path=/; Secure online, chỉ tắt riêng local. Hai phiên độc lập/me quyền DB, không JWT JSON; API-39 token gắn phiên.
+**Expected theo lựa chọn đã xác nhận** — Chỉ user đã xác minh và chưa khóa đăng nhập được. Scrypt bất đồng bộ dùng salt riêng 16 byte, digest 32 byte và lưu tham số trong chuỗi có phiên bản. JWT HS256 dùng issuer/audience đã chọn và hạn khớp phiên 24 giờ. Cookie `soundwave_session` dùng HttpOnly/SameSite=Lax/path=/, Secure online. Hai login tạo hai phiên độc lập, `/me` đọc quyền từ DB, JSON không chứa JWT. API-39 trả token CSRF ổn định trong phiên. [Xác thực](../architecture/security-and-media.md).
 
-**Chi tiết chưa chốt/phụ thuộc:** DEC-003/014/017/020/022: hash format/key lifecycle/Domain/CSRF response/Origin policy và seed. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+**Chi tiết chưa chốt/phụ thuộc** — Cách mã hóa chuỗi hash, Domain, CSRF response, Origin và seed còn DEC-014/017/020. [Hợp đồng còn thiếu](../api/README.md#contract-gaps).
 
 **Bằng chứng cần có:** Version/config đã che secret, hash verification không in hash, cookie properties, phiên/expires_at và response.
 
@@ -78,9 +78,9 @@ Trạng thái: `NOT_RUN`.
 
 **Đầu vào và thao tác:** API-32/33/34: email tồn tại/không/locked/unverified, OTP đúng-sai-hết hạn-resend, currentPassword sai/đúng, hai phiên; reset {email,otp,newPassword}.
 
-**Expected theo lựa chọn đã xác nhận:** Reset chỉ verified/chưa khóa; yêu cầu phản hồi chung không tiết lộ tồn tại. Password 12–128/không trim; hash scrypt/thu hồi mọi phiên nguyên tử, không tự login; password cũ thất bại/mới login riêng. Đổi cần currentPassword/newPassword.
+**Expected theo lựa chọn đã xác nhận** — Reset chỉ cho user đã xác minh và chưa khóa. Yêu cầu reset phản hồi chung. Giữ nguyên password 12–128 ký tự. Đánh dấu mã đã dùng, đổi hash scrypt và thu hồi mọi phiên trong cùng transaction. Password cũ thất bại, user đăng nhập riêng bằng password mới. Đổi mật khẩu cần `currentPassword` và `newPassword`. [Giao dịch auth](../architecture/security-and-media.md#auth-transaction-order).
 
-**Chi tiết chưa chốt/phụ thuộc:** DEC-003/005/014/017/022: response/status/provider error/timeout/hash format và race. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+**Chi tiết chưa chốt/phụ thuộc** — Response/status khi provider lỗi, timeout cụ thể, xử lý `reserved` và cách mã hóa chuỗi hash còn DEC-003/005/014/017. [Hợp đồng còn thiếu](../api/README.md#contract-gaps).
 
 **Bằng chứng cần có:** Password/OTP/hash được che, response email chung/user-phiên trước-sau, kiểm login riêng sau reset.
 
@@ -90,11 +90,11 @@ Trạng thái: `NOT_RUN`.
 
 Trạng thái: `NOT_RUN`.
 
-**Đầu vào và thao tác:** JWT sai chữ ký/claim/thuật toán, thiếu-hết hạn-thu hồi cookie, logout một phiên/ban-unban/password/approve/restart/DB lỗi; API-39/X-CSRF-Token đúng-sai-thiếu/Origin.
+**Đầu vào và thao tác** — JWT sai chữ ký/claim/thuật toán, thiếu hoặc hết hạn cookie, thu hồi, logout một phiên, ban/unban, đổi/reset mật khẩu, approve, restart và lỗi DB. Thử đổi khóa JWT, login bằng mật khẩu cũ đang xử lý khi reset commit và API-39 từ nhiều tab. Kiểm tra `X-CSRF-Token` đúng/sai/thiếu và Origin.
 
-**Expected theo lựa chọn đã xác nhận:** HS256/secret >=32 byte, phiên 24 giờ không refresh; cookie đã chọn; protected mutation token ngẫu nhiên gắn phiên/Origin; auth trước login JSON/Origin. Logout riêng phiên 204, ban/đổi-reset tất cả, unban không hồi sinh, approve quyền kế tiếp, DB lỗi không bỏ kiểm tra, phiên bền restart/thu hồi-hết hạn 401.
+**Expected theo lựa chọn đã xác nhận** — HS256 dùng secret 32 byte, phiên tuyệt đối 24 giờ, token CSRF 32 byte và ổn định trong phiên. Logout riêng phiên trả 204. Khóa/đổi-reset mật khẩu/đổi khóa JWT thu hồi toàn bộ phiên thuộc phạm vi thao tác. Mở khóa cần login lại. Login đang xử lý bằng mật khẩu cũ kiểm tra lại hash dưới khóa và không tạo phiên sau khi reset đã commit. Quyền Creator có hiệu lực ở request kế tiếp. Phiên còn hạn tồn tại qua restart. Phiên hết hạn hoặc thu hồi trả 401. Khi DB lỗi, API trả lỗi dịch vụ. [Giao dịch auth](../architecture/security-and-media.md#auth-transaction-order).
 
-**Chi tiết chưa chốt/phụ thuộc:** DEC-014/017/022: key lifecycle/CSRF response-cấp lại-thu hồi/Origin thiếu-phạm vi public mutation/lock order/status dịch vụ. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+**Chi tiết chưa chốt/phụ thuộc** — Phối hợp đổi khóa online, wire CSRF, Origin thiếu/phạm vi public mutation và status lỗi dịch vụ còn DEC-014/017. [Hợp đồng còn thiếu](../api/README.md#contract-gaps).
 
 **Bằng chứng cần có:** Thứ tự commit/request/phiên-user trước-sau/headers che giá trị/clock-DB failure có điều khiển; không tuyên bố hủy request đã nhận.
 
@@ -206,7 +206,7 @@ Trạng thái: `NOT_RUN`.
 
 **Expected theo lựa chọn đã xác nhận:** Chỉ gửi mọi ID hiển thị/khóa playlist/kiểm đúng tập. Ẩn giữ liên kết ở cuối/hiện lại cuối/không count/đọc liên tục. Tập đổi 409/tải lại; hai reorder hợp lệ tuần tự/lần hoàn tất sau quyết định cuối. Từ 1/thêm cuối/gỡ đánh lại, UNIQUE kiểm commit/không trùng cặp.
 
-**Chi tiết chưa chốt/phụ thuộc:** DEC-005/017/022: response/validation array-ID/trùng/thêm-gỡ lặp, DDL deferred/lock order khi trạng thái track-chủ đổi. DEC-019 đã ACCEPTED, không tự thêm ETag/revision. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+**Chi tiết chưa chốt/phụ thuộc** — Response, validation array-ID/trùng và thêm-gỡ lặp còn DEC-005/017. Thứ tự khóa khi trạng thái track-chủ đổi còn DEC-022. [DDL deferred đã kiểm chứng](../project/status.md#single-database-migration-2026-11-20).
 
 **Bằng chứng cần có:** Interleaving điều khiển/liên kết ẩn-thứ tự-count trước-sau/unhide/constraint commit; không MAX+1 ngoài transaction.
 
@@ -276,7 +276,7 @@ Trạng thái: `NOT_RUN`.
 
 **Expected theo lựa chọn đã xác nhận:** Một pending/user/pending bất biến/rejected nộp POST mới/lưu lịch sử; duyệt application ID/khóa hàng hồ sơ, approve role creator/quyền request kế tiếp, reject không upload. users.role nguồn quyền/creatorStatus suy ra hồ sơ; ngày nộp riêng/reviewer-ngày-lý do; PATCH kênh tên-bio không đổi quyền.
 
-**Chi tiết chưa chốt/phụ thuộc:** DEC-005/017/022: field lĩnh vực-lý do/body-response/required-null/mapping trạng thái-kênh/transaction. Tra [sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17) và [API gaps](../api/README.md#contract-gaps); không tự chọn expected còn thiếu.
+**Chi tiết chưa chốt/phụ thuộc** — Field lĩnh vực/lý do, body/response và required/null còn DEC-005/017. Thứ tự khóa giao dịch còn DEC-022. [Schema Creator](../architecture/data-model.md#target-model).
 
 **Bằng chứng cần có:** Hồ sơ-history-user trước-sau/thử upload bằng phiên cũ/ID application không nhầm user/ngày nộp không lấy user.created_at.
 
@@ -286,13 +286,15 @@ Trạng thái: `NOT_RUN`.
 
 Trạng thái: `NOT_RUN`.
 
-**Đầu vào và thao tác** — Chạy migration đích bằng `node-pg-migrate` trên DB thử riêng PostgreSQL 18 trống sau khi migration được tạo. Kiểm tra DDL/seed cũ ở môi trường riêng nếu có tác vụ tương ứng. Thử seed demo sau khi có bộ dữ liệu được xác nhận.
+**Đầu vào và thao tác** — Chạy `npm run migrate` trên DB thử riêng PostgreSQL 18 trống. Chạy `npm test` trên DB thử và đối chiếu catalog. Kiểm tra DDL/seed cũ ở môi trường riêng nếu có tác vụ tương ứng. Thử seed demo sau khi có bộ dữ liệu được xác nhận.
 
-**Expected theo lựa chọn đã xác nhận** — Sau chuỗi migration, schema đích có năm bảng nghiệp vụ hiện có và bốn bảng bổ sung `otp_challenges`, `auth_sessions`, `creator_applications` và `listen_cooldowns`. Kiểm tra `email_verified_at`, `search_text`, `TIMESTAMPTZ`, UNIQUE thứ tự kiểm tra lúc COMMIT và soft delete. DB khởi tạo chưa có tài khoản hoặc nội dung demo. Kiểm tra scrypt và đăng nhập sau xác minh email khi chạy seed demo riêng. [Phạm vi migration đã xác nhận](../decisions/open-decisions.md#evidence-initial-migration-2026-11-18).
+**Expected theo lựa chọn đã xác nhận** — Một migration tạo chín bảng nghiệp vụ trên DB trống. Kiểm tra catalog, email duy nhất, FK và CHECK của tài khoản/OTP, hồ sơ pending duy nhất, định danh cooldown, giới hạn track và UNIQUE vị trí playlist lúc COMMIT. Chạy lại giữ một dòng lịch sử. Sau `down` và `up` trên DB dùng riêng, schema có thể tái hiện. Seed demo và đăng nhập sau xác minh kiểm tra riêng. [Schema khởi tạo](../architecture/data-model.md#target-model).
 
 Nếu kiểm riêng DDL cũ, đối chiếu năm bảng, 40 cột, chín index tường minh, `sort_order DEFAULT 1` và FK/UNIQUE/CHECK/nullable theo khai báo. Kiểm tra `UPDATE deleted_at` không cascade.
 
-**Chi tiết chưa chốt/phụ thuộc** — Cột, FK, index, thứ tự khóa, định dạng hash, lệnh chạy và fixture/media còn DEC-003/014/020/022. Chưa có migration để chạy. [Sổ DEC](../decisions/open-decisions.md#evidence-simple-2026-11-17).
+**Chi tiết chưa chốt/phụ thuộc** — Cách mã hóa chuỗi hash, fixture/media, seed demo và luồng vận hành ngoài DDL còn DEC-014/020/022. [Xác nhận phạm vi](../decisions/open-decisions.md#evidence-single-migration-2026-11-20).
+
+**Bằng chứng phần DDL khởi tạo** — `PASS` theo `SCHEMA-20261120-01`, PostgreSQL 18.4 thử riêng. Đã kiểm tra chín bảng, các ràng buộc trong test, áp lại, rollback và áp mới sau rollback. TC-19 đầy đủ vẫn `NOT_RUN` vì seed/demo và DDL/seed cũ chưa chạy. [Kết quả](../project/status.md#single-database-migration-2026-11-20).
 
 **Bằng chứng cần có:** Revision/version/log DDL-migration/rollback-dữ liệu/sequence/hash-login sau verify/manifest; không reset DB cần giữ.
 

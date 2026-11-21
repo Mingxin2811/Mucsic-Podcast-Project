@@ -6,7 +6,7 @@ Quy trình này áp dụng cho công việc được giao trong repo; không t�
 
 1. Đọc [hiện trạng](../project/status.md) để biết mã/lệnh nào thực sự có.
 2. Xác định UC, quy tắc, API/bảng liên quan qua [traceability](../requirements/traceability.md).
-3. Đọc các `DEC` liên quan và kết quả xác nhận 17/11/2026. Không xin chốt lại lựa chọn đã ACCEPTED/CONFIRMED; xác định chi tiết còn OPEN thật sự chặn đầu ra.
+3. Đọc các `DEC` liên quan và xác nhận hiện hành. Dùng lựa chọn `ACCEPTED`/`CONFIRMED` và xác định chi tiết `OPEN` thật sự chặn đầu ra.
 4. Với công việc nhiều bước, ghi [kế hoạch](../plans/README.md) có đầu vào, giới hạn, đầu ra và phép kiểm chứng. Không tạo kế hoạch triển khai một phương án OPEN như thể đã được chọn.
 
 Khi tác vụ phụ thuộc quyết định mở, nêu mã, lựa chọn cần chốt và ảnh hưởng cụ thể. Tiếp tục phần độc lập đã được giao; không yêu cầu xác nhận chung chỉ để tiếp tục công việc đã rõ. Nếu phát hiện thông tin mới, bổ sung đúng mục quyết định hoặc tạo mã mới theo [quy trình](../decisions/README.md).
@@ -29,9 +29,9 @@ Nhóm từng mô tả feature branch, review chéo và không push trực tiếp
 
 ## Ba tình huống tra cứu
 
-**Giao việc auth:** UC01/UC02 → BR-003 → API auth → DEC-003/005/006/014/017/022 → TC-01–TC-05. Đã chọn OTP email thật, JWT + phiên PostgreSQL/cookie 24 giờ, không refresh; đã chọn Resend/HMAC/scrypt/HS256/soundwave_session/X-CSRF-Token/Origin; còn wire/status/CSRF lifecycle/key lifecycle/schema chi tiết. Không lấy ví dụ đăng ký cũ không OTP hoặc JSON token làm hợp đồng cuối.
+**Giao việc auth:** UC01/UC02 → BR-003 → API auth → DEC-003/005/006/014/017/022 → TC-01–TC-05. [Xác nhận 18/11](../decisions/open-decisions.md#evidence-bootstrap-auth-2026-11-18) bổ sung cấu hình local, schema tài khoản, thứ tự khóa và vòng đời gửi OTP. Xem wire/status, IP limit, `reserved` và đăng ký lại trong [khoảng trống API](../api/README.md#contract-gaps).
 
-**Thay đổi database:** data-model → DDL hiện có và mô hình đích tách biệt → DEC-003/006/007/010/013/014/019/022 → TC-19 và UC liên quan. PostgreSQL 18 đã chọn; schema logic thêm otp_challenges/auth_sessions/creator_applications/listen_cooldowns, search_text/email_verified_at; chưa có migration. Đọc SQL được phép; script reset không phải migration giữ dữ liệu.
+**Thay đổi database:** data-model → DEC-003/006/007/010/013/014/019/022 → TC-19 và UC liên quan. [Migration khởi tạo](../architecture/data-model.md#target-model) tạo chín bảng trên PostgreSQL 18 trống. Đối chiếu DDL/seed reset cũ và dùng [lệnh migration đã kiểm chứng](local-setup.md).
 
 **Tra endpoint:** tìm API-ID → danh mục API hiện hành → DEC-004/005/009/017. Bốn route tranh chấp cũ đã được chọn; update dùng PATCH. Không thêm alias; API-30–39 đã chốt method/path, API-25 application ID; response/field bổ sung chưa đủ nằm trong gaps. Chỉ chuẩn hóa phần đã được xác nhận, giữ nullable/error/body chưa chọn là DRAFT.
 

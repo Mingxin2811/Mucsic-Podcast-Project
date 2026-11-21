@@ -19,3 +19,5 @@ Lượt nghe dựa trên client/cooldown, chưa chống gian lận; Guest chuy�
 [API](../api/README.md) thêm API-30–39/application ID API-25; [BR](../requirements/business-rules.md) sở hữu semantics, [data model](../architecture/data-model.md#target-model) sở hữu đích, [acceptance](../testing/acceptance.md) sở hữu expected, mọi TC NOT_RUN. Bốn bảng bổ sung chưa có SQL.
 
 DEC-003/005/014/017/022 còn chi tiết; DEC-015/016/020 không đóng. Chưa tạo tài khoản email/mua domain/cài công cụ/migration/ứng dụng. [Kế hoạch](../plans/2026-11-17-simple-backend-decisions.md), [hiện trạng](../project/status.md#simple-sync-2026-11-17).
+
+[ADR-0006](adr-0006-bootstrap-and-account-schema.md) bổ sung các quyết định ngày 18/11/2026 về cấu hình local, schema ba bảng tài khoản và giao dịch auth.

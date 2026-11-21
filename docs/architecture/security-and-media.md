@@ -6,15 +6,25 @@ Lựa chọn kiến trúc ngày 17/11/2026 đã CONFIRMED theo [DEC](../decision
 
 [DEC-003/014/017](../decisions/open-decisions.md#evidence-simple-2026-11-17): Resend HTTPS/fetch backend, cần tài khoản/API key/domain gửi xác minh; chưa thiết lập/gửi/mua domain. Listener mới email_verified_at NULL/chưa login. OTP sáu số/năm phút/một lần/ba sai; resend 60 giây hủy cũ; tối đa 5 lần gửi/email/giờ, thêm IP limit/ngưỡng chưa chọn.
 
-PostgreSQL lưu digest HMAC với secret riêng khác JWT, số thử/thời hạn/đã dùng. Mail lỗi giữ user chưa xác minh/cho resend/không tạo trùng; reset chỉ user verified/chưa khóa/yêu cầu phản hồi chung không tiết lộ email, verify/reset không tự login. Cạnh tranh/timeout không rõ kết quả/đăng ký lại/trạng thái OTP sau gửi lỗi còn DEC-003/022, không tự thêm queue.
+PostgreSQL lưu digest HMAC-SHA256 với secret riêng, số lần sai, thời hạn và các mốc dùng/vô hiệu hóa. Lỗi gửi giữ user đăng ký ở trạng thái chưa xác minh, cho gửi lại và không tạo user trùng. Reset dành cho user đã xác minh và chưa khóa. Yêu cầu reset phản hồi chung để bảo vệ thông tin tài khoản. Xác minh email và reset không tự đăng nhập.
 
-Password 12–128 ký tự, cho khoảng trắng/không trim/không ép ký tự đặc biệt. scrypt bất đồng bộ Node, N=32768,r=8,p=3,maxmem=64 MiB, salt riêng/password/lưu thông số cùng hash. Định dạng hash/salt còn DEC-014, dữ liệu demo và kiểm chứng đăng nhập còn DEC-020. Migration trên DB trống nằm trong [DEC-022](../decisions/open-decisions.md#evidence-initial-migration-2026-11-18). Không ghi password/hash/OTP/JWT thật vào log bàn giao.
+Password 12–128 ký tự, cho khoảng trắng/không trim/không ép ký tự đặc biệt. Dùng scrypt bất đồng bộ Node với `N=32768`, `r=8`, `p=3`, `maxmem=64 MiB`, salt ngẫu nhiên 16 byte riêng cho mỗi mật khẩu và digest 32 byte. `password_hash` lưu một chuỗi có phiên bản gồm thuật toán, `N/r/p`, salt và digest. Cách mã hóa tuần tự của chuỗi thuộc DEC-014. Dữ liệu demo và kiểm chứng đăng nhập thuộc DEC-020. Không ghi password/hash/OTP/JWT thật vào log bàn giao.
+
+<a id="otp-delivery"></a>
+
+### Ghi lượt gửi và xử lý kết quả OTP
+
+1. Trong transaction, kiểm tra cooldown/hạn mức, đóng mã cũ khi cấp mã thay thế và ghi mã mới với `delivery_status=reserved`. Kiểm tra và ghi lượt gửi của cùng tài khoản phải nguyên tử. Mọi lượt đã ghi đều tính vào hạn mức gửi, kể cả lượt gửi lỗi.
+2. Gọi Resend sau commit. Phản hồi thành công ghi `accepted`. Lỗi xác định ghi `failed` và vô hiệu hóa mã nếu còn hiệu lực. Timeout chưa rõ kết quả ghi `unknown`. Mã `unknown` còn đủ điều kiện xác minh đến khi hết hạn hoặc bị thay, theo các điều kiện dùng một lần và số lần sai.
+3. Cập nhật kết quả gửi cho đúng mã. Kết quả đến muộn vẫn giữ nguyên việc mã đã dùng hoặc đã bị vô hiệu hóa.
+
+Các quyết định còn mở gồm timeout cụ thể, xử lý `reserved` khi process bị gián đoạn, điều kiện verify trong trạng thái `reserved`, hạn mức/IP và đăng ký lại. Cần làm rõ tính nguyên tử theo IP khi nhiều tài khoản dùng chung IP. Wire và phản hồi khi Resend lỗi thuộc DEC-003/005/017. [Xác nhận 18/11](../decisions/open-decisions.md#evidence-bootstrap-auth-2026-11-18), [schema khởi tạo](data-model.md#initial-auth-schema).
 
 ## Phiên JWT đã chọn
 
 [DEC-006](../decisions/open-decisions.md#dec-006), [ADR xác thực](../decisions/adr-0001-authentication-and-sessions.md): JWT đi cùng bảng `auth_sessions` PostgreSQL. JWT có sub (user ID), sid (session ID), iat, exp, iss, aud; không cần email/role. Mỗi login thành công tạo phiên riêng. Token và phiên hết hạn tuyệt đối sau 24 giờ; không gia hạn, chưa có refresh token.
 
-Protected request: xác minh chữ ký và claim → JOIN/đọc phiên cùng user → kiểm tra đúng chủ, chưa hết hạn/thu hồi, user hoạt động và đã xác minh email → kiểm tra role hiện tại/sở hữu. Không lấy quyền từ body hoặc token role cũ. DB lỗi trả lỗi dịch vụ, không bỏ qua xác thực. Đã chọn jose/HS256 secret ngẫu nhiên >=32 byte qua môi trường; issuer/audience/key lifecycle/lỗi chi tiết còn DEC-014/DEC-017.
+Protected request xác minh chữ ký HS256 và claim, sau đó đọc phiên cùng user, kiểm tra đúng chủ, còn hạn, chưa thu hồi, user hoạt động và đã xác minh email, rồi kiểm tra quyền hiện tại/sở hữu. DB lỗi trả lỗi dịch vụ. JWT dùng `soundwave-api` làm issuer và `soundwave-web` làm audience. Mỗi môi trường có secret JWT ngẫu nhiên 32 byte, riêng với secret OTP. MVP chỉ dùng một khóa JWT tại mỗi thời điểm. Đổi khóa thu hồi các phiên hiện có và yêu cầu đăng nhập lại. Cách phối hợp thay khóa khi triển khai online còn DEC-014. [Biến môi trường](../development/local-setup.md).
 
 | Sự kiện | Hành vi CONFIRMED |
 | --- | --- |
@@ -27,13 +37,23 @@ Protected request: xác minh chữ ký và claim → JOIN/đọc phiên cùng us
 | Hết hạn/thu hồi | Protected request trả 401 |
 | Backend restart | Phiên chưa hết hạn/thu hồi còn hiệu lực trong DB |
 
-Thu hồi có hiệu lực với request mới sau khi giao dịch hoàn tất; không hứa hủy request đã được nhận hoặc dữ liệu đã tải. Khóa hàng user khi login/khóa/đổi mật khẩu; reset thay hash/thu hồi phiên nguyên tử; lock order/race cụ thể còn DEC-022.
+Thu hồi có hiệu lực với request mới sau khi giao dịch hoàn tất.
+
+<a id="auth-transaction-order"></a>
+
+### Thứ tự khóa giao dịch auth
+
+- Login, khóa tài khoản và đổi/reset mật khẩu lấy khóa hàng `users` trước khi cập nhật OTP hoặc phiên. Login tính scrypt trước khi lấy khóa. Sau khi lấy khóa, kiểm tra lại hash và trạng thái tài khoản trước khi cấp phiên.
+- Verify và reset OTP lấy khóa `users` rồi tới `otp_challenges`. Lần sai thứ ba tăng bộ đếm và vô hiệu hóa mã cùng lúc. Reset thành công đánh dấu mã đã dùng, đổi hash và thu hồi mọi phiên trong cùng transaction.
+- Phiên và JWT cùng lấy hạn tuyệt đối 24 giờ từ mốc tạo phiên. CSRF token ngẫu nhiên 32 byte được lưu cùng phiên và giữ ổn định để các tab dùng chung.
+
+[Schema khởi tạo](data-model.md#initial-auth-schema), [DEC-022](../decisions/open-decisions.md#dec-022).
 
 ## Cookie và CSRF
 
 Cookie **soundwave_session**, HttpOnly/SameSite=Lax/path=/; Secure/HTTPS/cùng origin online; HTTP local được tắt riêng Secure, proxy /api cùng origin. Không JWT JSON/Bearer/localStorage như hợp đồng hiện hành. Cookie Domain chưa chốt, không tự tạo Set-Cookie đầy đủ.
 
-Protected request ghi gửi **X-CSRF-Token** ngẫu nhiên lưu cùng phiên; lấy [API-39 GET /api/auth/csrf](../api/auth.md#api-39). Kiểm tra Origin; auth trước login nhận JSON/kiểm Origin. Response/cấp lại/thu hồi token, Origin thiếu/sai/phạm vi public mutation còn DEC-017; không dùng phiên để chặn Guest audio public. SameSite không thay toàn bộ CSRF.
+Protected request ghi gửi **X-CSRF-Token** lấy qua [API-39 GET /api/auth/csrf](../api/auth.md#api-39). Token ổn định trong phiên. Auth trước login nhận JSON và kiểm tra Origin. Wire response/headers, cách xử lý phiên đã thu hồi và Origin thiếu/sai/phạm vi public mutation còn DEC-017. Guest vẫn truy cập audio public theo trạng thái track.
 
 Guest đếm lượt dùng UUID/cookie có chữ ký riêng về mục đích; tên/thuộc tính/thời hạn/chữ ký còn DEC-014/017, không gán nhầm soundwave_session là Guest ID.
 

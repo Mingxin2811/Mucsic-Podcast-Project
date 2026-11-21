@@ -53,4 +53,8 @@ ADR đã chấp nhận: [auth/phiên](adr-0001-authentication-and-sessions.md), 
 
 Bổ sung cùng ngày: [ADR-0004 audio và vòng đời file](adr-0004-audio-contract-and-file-lifecycle.md) mở rộng ADR-0002 theo xác nhận mới, không thay lựa chọn local. DEC-009/DEC-011 nay ACCEPTED trong phạm vi được ghi; chi tiết runtime/schema ngoài phạm vi còn DEC-014/017/022.
 
-Hiện hành sau [xác nhận đơn giản](open-decisions.md#evidence-simple-2026-11-17): 14 ACCEPTED/8 OPEN, thêm [ADR-0005](adr-0005-simple-backend-contracts.md), 39 API-ID. Quy tắc reorder cũ được thay thế có ghi lịch sử; những ADR auth/nền tảng được bổ sung, không đổi kiến trúc cốt lõi.
+Sau [xác nhận đơn giản](open-decisions.md#evidence-simple-2026-11-17), [ADR-0005](adr-0005-simple-backend-contracts.md) bổ sung auth/nền tảng và ghi thay đổi quy tắc reorder.
+
+Ngày 18/11/2026, [ADR-0006](adr-0006-bootstrap-and-account-schema.md) ghi baseline, lệnh local, schema ba bảng tài khoản và giao dịch auth. Sổ DEC hiện có 14 `ACCEPTED` và 8 `OPEN`. [Xác nhận bootstrap](open-decisions.md#evidence-bootstrap-auth-2026-11-18).
+
+Ngày 20/11/2026, [ADR-0007](adr-0007-single-initial-database-migration.md) ghi quyết định dùng một migration khởi tạo chín bảng trên PostgreSQL 18 trống.

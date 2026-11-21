@@ -1,12 +1,12 @@
 # Tài liệu dự án Soundwave
 
-Bộ docs này đủ nội dung để phân tích và giao việc backend, database, kiểm thử và quản lý dự án. Ngày 17/11/2026 đã đồng bộ các lựa chọn người dùng xác nhận. Phần CONFIRMED có nguồn tại sổ DEC; field/wire/protocol còn thiếu vẫn DRAFT, chưa có bằng chứng chạy ứng dụng. Đợt này không tuyên bố đủ mọi hợp đồng để giao code ngay.
+Bộ docs phục vụ giao việc backend, database, kiểm thử và quản lý dự án. Phần `CONFIRMED` có nguồn tại sổ DEC. Chi tiết chưa chốt giữ `DRAFT`. Bootstrap backend và một migration khởi tạo chín bảng đã chạy trên PostgreSQL 18 thử nghiệm. [Hiện trạng](project/status.md#single-database-migration-2026-11-20).
 
-## Hiện hành sau xác nhận phương án đơn giản
+## Hiện hành sau xác nhận bootstrap và schema tài khoản
 
-Nguồn [xác nhận mới](decisions/open-decisions.md#evidence-simple-2026-11-17), [ADR-0005](decisions/adr-0005-simple-backend-contracts.md), [kế hoạch](plans/2026-11-17-simple-backend-decisions.md). Hiện **39 API-ID, 14 DEC ACCEPTED/8 OPEN, 5 ADR**; 12 UC/9 BR/5 NFR/21 TC giữ mã. Các số ở snapshot dưới là lịch sử, không là kiểm kê hiện hành.
+Ngày 18/11/2026 đã chốt bootstrap và auth. Ngày 20/11/2026 đã chốt một migration cho chín bảng nghiệp vụ trên PostgreSQL 18 trống. Hiện **39 API-ID, 14 DEC ACCEPTED/8 OPEN, 7 ADR**, với 12 UC/9 BR/5 NFR/21 TC. [ADR-0006](decisions/adr-0006-bootstrap-and-account-schema.md), [ADR-0007](decisions/adr-0007-single-initial-database-migration.md).
 
-Đã chọn Zod/Multer/jose-HS256/scrypt Node/pg.Pool/node-pg-migrate/node:test-fetch/ESLint, Resend HTTPS/OTP-HMAC, cookie soundwave_session/CSRF-Origin/password 12–128, bốn bảng đích bổ sung, search_text, cooldown trượt 30 phút và text limits. Reorder chỉ ID hiển thị/ẩn cuối-hiện lại cuối thay quy tắc trước. Xem [hợp đồng còn thiếu](api/README.md#contract-gaps) và [hiện trạng mới](project/status.md#simple-sync-2026-11-17): wire/schema/version/media limits/recovery, hosting/demo/quản lý/protocol vẫn còn; không triển khai/cài/chạy SQL hoặc mail từ thay đổi docs.
+Phần còn mở gồm IP limit, wire auth, thứ tự khóa khi API cập nhật nhiều bảng, phiên bản và giới hạn media, recovery, hosting, demo và nghiệm thu. [ADR-0005](decisions/adr-0005-simple-backend-contracts.md), [hợp đồng còn thiếu](api/README.md#contract-gaps).
 
 ## Bắt đầu đọc
 

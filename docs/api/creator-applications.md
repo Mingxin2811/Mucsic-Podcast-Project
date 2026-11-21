@@ -24,4 +24,4 @@ User verified/đăng nhập/chưa khóa xem lịch sử hồ sơ của mình, 20
 
 `PATCH /api/creator/channel`
 
-Creator đã được duyệt/đăng nhập/chưa khóa sửa tên kênh/bio, CSRF/Origin, 200. Không thay quyền/người review/lịch sử nộp bằng PATCH kênh. Omitted giữ nguyên; body/required-null/giới hạn/response và mapping kênh đã duyệt còn DEC-005/017/022. Không tự mở sửa mọi kênh cho Admin qua route cá nhân.
+Creator đã được duyệt/đăng nhập/chưa khóa sửa tên kênh/bio, CSRF/Origin, 200. Sửa dữ liệu kênh hiện tại trên hồ sơ đã duyệt, giữ quyền, người review và dữ liệu lúc nộp. Omitted giữ nguyên. Body/required-null/giới hạn/response còn DEC-005/017. [Schema](../architecture/data-model.md#target-model).

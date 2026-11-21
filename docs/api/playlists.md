@@ -406,4 +406,4 @@ CONFIRMED theo [DEC-019](../decisions/open-decisions.md#dec-019)/[xác nhận m�
 
 Body CONFIRMED `{trackIds:[...]}` là toàn bộ ID **đang hiển thị**, thay mọi liên kết trước đây. Backend khóa playlist/kiểm đúng tập hiển thị; giữ liên kết track ẩn ở cuối/hiện lại cuối, đọc thứ tự liên tục/từ 1, không đếm track ẩn. Tập track thay đổi trả 409 để tải lại. Hai reorder hợp lệ tuần tự, lần hoàn tất sau quyết định cuối; UNIQUE thứ tự kiểm lúc commit.
 
-Success 200 theo PATCH, response đầy đủ/validation array-ID trùng-ID sai/lỗi khác còn DEC-005/017. DDL deferred/lock order với trạng thái track-chủ còn DEC-022; không tự tạo revision/ETag hoặc hứa mọi thay đổi cạnh tranh đều 409. [TC-13](../testing/acceptance.md#tc-13)/[TC-14](../testing/acceptance.md#tc-14).
+Success 200 theo PATCH. Response đầy đủ, validation array-ID trùng-ID sai và lỗi khác còn DEC-005/017. DDL đã có UNIQUE deferred. Thứ tự khóa với trạng thái track-chủ còn DEC-022. [Schema](../architecture/data-model.md#target-model), [TC-13](../testing/acceptance.md#tc-13)/[TC-14](../testing/acceptance.md#tc-14).

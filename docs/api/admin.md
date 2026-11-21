@@ -247,7 +247,7 @@ Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/
 
 ### Tác động dữ liệu và giới hạn
 
-CONFIRMED: approve cấp creator/approved, reject không cấp upload; hồ sơ pending bất biến và có lịch sử/lý do/người/ngày duyệt; rejected được nộp mới. Quyền từ DB hiệu lực request tiếp theo, không bắt login lại khi approve. Path id là application ID đã chốt; khóa hàng hồ sơ khi review, users.role nguồn quyền/creatorStatus suy ra hồ sơ. Body lý do/response/mapping trạng thái/transaction cạnh tranh còn DEC-005/017/022.
+CONFIRMED: approve cấp quyền Creator, reject giữ quyền hiện tại. Hồ sơ pending bất biến, hồ sơ bị từ chối có thể nộp lần mới. Quyền DB có hiệu lực ở request tiếp theo. Path id là application ID, khóa hàng hồ sơ khi review, `users.role` cấp quyền và `creatorStatus` suy từ hồ sơ mới nhất. Body lý do, response và transaction cạnh tranh còn DEC-005/017/022. [Schema](../architecture/data-model.md#target-model).
 
 Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
 

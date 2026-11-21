@@ -1,6 +1,6 @@
 # Sổ quyết định và phần còn mở
 
-Cập nhật ngày **17/11/2026**, Asia/Saigon. Giữ đường dẫn `open-decisions.md` và mã DEC cũ để không phá liên kết.
+Cập nhật ngày **20/11/2026**, Asia/Saigon. Giữ đường dẫn `open-decisions.md` và mã DEC cũ để không phá liên kết.
 
 <a id="evidence-2026-11-17"></a>
 
@@ -29,6 +29,14 @@ Người xác nhận: **người dùng trong phiên làm việc**. Sau phần gi
 Người xác nhận: **người dùng trong phiên làm việc**, Asia/Saigon. Sau đề xuất chín nhóm DEC-003/005/010/012/014/017/019/021/022, người dùng xác nhận: “tôi chập nhận những đề xuất này. hãy cập nhật docs”. Chấp nhận công cụ, scrypt/HS256, Resend/OTP, API bổ sung, cookie/CSRF/validation, mô hình đích, lượt nghe, search_text, reorder hiển thị và giới hạn plain text. Không mở rộng sang hosting, protocol nghiệm thu, versions/limits media hoặc schema/wire chưa nêu.
 
 Reorder **thay thế** quy tắc trước về gửi mọi ID liên kết: nay chỉ gửi toàn bộ ID đang hiển thị, giữ liên kết ẩn ở cuối. DEC-010/012/019/021 giải quyết phạm vi; hiện **14 ACCEPTED, 8 OPEN**. DEC-003/005/014/017/022 vẫn OPEN ở chi tiết ghi riêng. [ADR-0005](adr-0005-simple-backend-contracts.md), [kế hoạch](../plans/2026-11-17-simple-backend-decisions.md), [bằng chứng](../project/status.md#simple-sync-2026-11-17).
+
+<a id="evidence-bootstrap-auth-2026-11-18"></a>
+
+## Xác nhận bootstrap và schema tài khoản ngày 18/11/2026
+
+Người dùng trong phiên xác nhận: “tôi chấp nhận những đề xuất này của bạn, hãy cập nhật vào docs”. Xác nhận bao gồm baseline runtime, cấu hình và lệnh local/migrate/test, chính sách khóa JWT và định dạng hash, migration đầu tiên cho ba bảng tài khoản, thứ tự khóa và xử lý kết quả gửi OTP. [ADR-0006](adr-0006-bootstrap-and-account-schema.md), [kế hoạch cập nhật](../plans/2026-11-18-backend-bootstrap-decisions.md).
+
+DEC-003/014/022 còn `OPEN` ở các phần ghi riêng. Ngưỡng/phạm vi IP, đăng ký lại, wire HTTP, chi tiết schema các luồng sau, media, hosting và backup tiếp tục được quản lý tại DEC tương ứng.
 
 ## Danh mục
 
@@ -107,9 +115,11 @@ Trạng thái: `OPEN`. Xác nhận mới: người dùng trong phiên làm việ
 
 Resend HTTPS qua fetch backend, cần tài khoản/API key/domain gửi xác minh, chưa thiết lập. Đăng ký tạo user email_verified_at NULL, chưa login. OTP sáu số/năm phút/một lần/ba sai; resend sau 60 giây hủy cũ. Digest HMAC/secret riêng, số lần sai/thời hạn lưu PostgreSQL. Tối đa 5 lần gửi/email/giờ và thêm IP limit. Mail lỗi giữ user chưa xác minh, báo tạm thời/cho resend/không tạo user trùng. Reset chỉ user đã xác minh/chưa khóa; yêu cầu reset phản hồi chung không tiết lộ email tồn tại; verify/reset không tự login.
 
+Ngày 18/11/2026 đã chốt ghi lượt gửi và mã trước, gọi Resend sau commit. Lượt đã ghi tính vào hạn mức. Các trạng thái là `reserved`, `accepted`, `failed`, `unknown`. Lỗi xác định vô hiệu hóa mã. Kết quả chưa rõ giữ mã đủ điều kiện xác minh cho đến khi hết hạn hoặc bị thay. [Xác nhận](#evidence-bootstrap-auth-2026-11-18), [vòng đời OTP](../architecture/security-and-media.md#otp-delivery).
+
 ### Phần còn thiếu và giới hạn
 
-Còn ngưỡng/cửa sổ IP limit, cách lưu/đếm lần gửi và cạnh tranh/timeout không rõ kết quả; đăng ký lại user chưa xác minh/retention đăng ký; wire/status/error gửi/resend/reset, phản hồi chung khi provider lỗi và trạng thái OTP khi gửi lỗi. DEC-005/017/022 sở hữu wire/schema. Không tự tạo tài khoản Resend hoặc mua domain.
+Còn ngưỡng/cửa sổ/phạm vi IP limit và cách bảo đảm tính nguyên tử khi cùng IP gửi cho nhiều tài khoản. Cần chốt timeout gọi Resend, xử lý `reserved` nếu process dừng và điều kiện xác minh trong trạng thái đó, đăng ký lại và retention. Wire/status/error gửi/resend/reset và phản hồi chung khi provider lỗi thuộc DEC-005/017. Nếu đếm yêu cầu reset cho email không tồn tại, cần quyết định cách lưu lượt đó cùng DEC-022.
 
 ### Trước lần chấp nhận phương án đơn giản — lịch sử giữ nguyên
 
@@ -198,7 +208,7 @@ Chọn JWT + bảng auth_sessions trong PostgreSQL, thời hạn tuyệt đối 
 
 ### Phần còn thiếu và giới hạn
 
-Phạm vi quyết định kiến trúc đã chốt. Thuật toán ký/quản lý khóa, tên cookie và giao thức CSRF chi tiết còn đặc tả ở DEC-014/DEC-017; schema vật lý ở DEC-022. Xem [ADR phiên](adr-0001-authentication-and-sessions.md).
+HS256, tên cookie và header CSRF đã chọn. Cấu hình/đổi khóa JWT và schema ba bảng tài khoản đã được bổ sung ngày 18/11 tại [DEC-014](#dec-014) và [DEC-022](#dec-022). Wire CSRF/Origin còn DEC-017. Xem [ADR phiên](adr-0001-authentication-and-sessions.md).
 
 ### Bối cảnh trước xác nhận — lịch sử 11/11/2026
 
@@ -218,7 +228,7 @@ Bổ sung creator_applications để lưu tên kênh, giới thiệu, lĩnh vự
 
 ### Phần còn thiếu và giới hạn
 
-Lựa chọn mô hình đã chốt; tên/kiểu cột và quan hệ nguồn trạng thái user–hồ sơ còn ở DEC-022; wire ở DEC-005.
+Schema khởi tạo lưu lịch sử và tách dữ liệu kênh hiện tại khỏi dữ liệu lúc nộp. Trạng thái suy từ hồ sơ mới nhất. Thứ tự khóa khi review còn DEC-022, wire còn DEC-005/017. [Mô hình dữ liệu](../architecture/data-model.md#target-model).
 
 ### Bối cảnh trước xác nhận — lịch sử 11/11/2026
 
@@ -280,7 +290,7 @@ Cửa sổ trượt: tối thiểu 30 phút từ lượt được tính gần nh
 
 ### Phần còn thiếu và giới hạn
 
-Semantics đã chốt; schema/FK/index/cạnh tranh ở DEC-022. Cookie Guest (tên/thuộc tính/thời hạn), chữ ký/secret, validation numeric listenedSeconds/response đầy đủ ở DEC-014/017. Giữ chính sách track gỡ/chủ khóa và không đếm từ GET/HEAD audio.
+Schema đã có khóa duy nhất theo track/người nghe và index dọn. Giao dịch cạnh tranh và scheduler ở DEC-022. Cookie Guest (tên/thuộc tính/thời hạn), chữ ký/secret, validation numeric listenedSeconds/response đầy đủ ở DEC-014/017. Giữ chính sách track gỡ/chủ khóa và không đếm từ GET/HEAD audio. [Mô hình dữ liệu](../architecture/data-model.md#target-model).
 
 ### Trước lần chấp nhận phương án đơn giản — lịch sử giữ nguyên
 
@@ -382,9 +392,11 @@ Trạng thái: `OPEN`. Xác nhận mới: người dùng trong phiên làm việ
 
 Giữ Node.js 24/Express 5/JavaScript ESM/npm/PostgreSQL 18; một backend và PostgreSQL. Chọn Zod, Multer ghi temp, jose/HS256 secret ngẫu nhiên >=32 byte qua môi trường; scrypt bất đồng bộ Node, salt riêng/password, N=32768,r=8,p=3,maxmem=64 MiB, lưu thông số cùng hash. pg.Pool/SQL tham số hóa, node-pg-migrate, node:test/fetch/DB thử riêng, ESLint, Node watch local. Mục đích script dev/start/test/lint/migrate đã chọn; chỉ thêm lệnh cụ thể sau bootstrap. Chọn stable tương thích/khóa lockfile lúc bootstrap. Resend HTTPS/fetch; giữ ffprobe/FFmpeg/Sharp/UUID của media.
 
+Ngày 18/11/2026 đã chọn Node.js 24.22.3 LTS/PostgreSQL 18.7 làm baseline. Chốt bind local, biến cấu hình, một pool tối đa 5 kết nối với 3 giây chờ, lệnh dev/start/migrate/test/lint, DB thử riêng, phiên bản dependency stable tương thích được ghi trong lockfile và `npm ci` để tái hiện. Chốt issuer/audience, hai secret riêng mỗi môi trường, một khóa JWT mỗi thời điểm và thu hồi phiên khi thay khóa. Hash scrypt lưu chuỗi có phiên bản chứa tham số, salt 16 byte và digest 32 byte. [Xác nhận](#evidence-bootstrap-auth-2026-11-18), [thiết lập local](../development/local-setup.md), [xác thực](../architecture/security-and-media.md).
+
 ### Phần còn thiếu và giới hạn
 
-Còn versions package/binary/kiểm chứng tương thích, lệnh/config cụ thể, định dạng hash/salt/key lifecycle, issuer/audience/tên biến và deployment/backup. Media còn timeout/concurrency/image limits. Seed Bcrypt là artifact cũ, không thay scrypt hoặc mặc định login được; chưa cài package/runtime.
+Bootstrap đã khóa dependency và chạy kiểm chứng với môi trường có sẵn. Cách mã hóa tuần tự chuỗi hash, phối hợp thay khóa online và cấu hình hosting/backup còn mở. Multer/Sharp/FFmpeg được bổ sung ở mốc upload, khi đó chốt phiên bản, timeout, concurrency và giới hạn ảnh. Seed demo thuộc DEC-020. [Kết quả bootstrap](../project/status.md#backend-bootstrap-run-2026-11-18).
 
 ### Trước lần chấp nhận phương án đơn giản — lịch sử giữ nguyên
 
@@ -456,9 +468,11 @@ Trạng thái: `OPEN`. Xác nhận mới: người dùng trong phiên làm việ
 
 Cookie soundwave_session/HttpOnly/SameSite=Lax/path=/; online Secure, HTTP local được tắt riêng Secure. Protected request ghi gửi X-CSRF-Token ngẫu nhiên lưu cùng phiên, lấy GET /api/auth/csrf. Kiểm tra Origin; auth trước login nhận JSON/kiểm Origin; proxy /api cùng origin local. Password 12–128 ký tự/cho khoảng trắng/không trim/không ép ký tự đặc biệt. JSON <=128 KiB, multipart giới hạn riêng; unknown field/query 400, PATCH rỗng 400. Null chỉ xóa field tùy chọn, title/artist/genre không null. Lỗi chung VALIDATION_ERROR, UNAUTHENTICATED, FORBIDDEN, NOT_FOUND, CONFLICT, RATE_LIMITED, SERVICE_UNAVAILABLE; giữ mã audio cụ thể. Giữ envelope/camelCase/UTC/pagination/201-200-204 đã chốt; text theo DEC-021.
 
+Username 2–50 ký tự sau trim và có thể trùng. CSRF token 32 byte ngẫu nhiên và ổn định trong phiên. [Xác nhận ngày 18/11](#evidence-bootstrap-auth-2026-11-18).
+
 ### Phần còn thiếu và giới hạn
 
-Còn mapping status/code từng nhánh, field required/nullable/độ dài chưa nêu, username/title/channel/form Creator, trailing slash và Trending type shape. CSRF response/cấp lại/thu hồi, Origin thiếu/sai/phạm vi public mutation, cookie Domain/Guest thuộc tính/local proxy config. OTP phản hồi chung khi provider lỗi. Media multipart/remove cover/MIME/error phụ/conditional HTTP/chính sách ảnh. Không lấy bảy code chung thay mã audio đã chốt.
+Còn mapping status/code từng nhánh, field required/nullable/độ dài chưa nêu, title/channel/form Creator, trailing slash và Trending type shape. CSRF response/headers/xử lý phiên thu hồi, Origin thiếu/sai/phạm vi public mutation, cookie Domain và thuộc tính Guest còn mở. OTP phản hồi chung khi provider lỗi. Media multipart/remove cover/MIME/error phụ/conditional HTTP/chính sách ảnh. Mã lỗi audio giữ theo DEC-009.
 
 ### Trước lần chấp nhận phương án đơn giản — lịch sử giữ nguyên
 
@@ -510,7 +524,7 @@ Thay gửi mọi ID liên kết bằng toàn bộ ID đang hiển thị qua PATC
 
 ### Phần còn thiếu và giới hạn
 
-Semantics đã chốt; response/error DEC-005/017, FK/constraint deferred và giao dịch khi track/chủ đổi trạng thái DEC-022. Thêm/gỡ lặp ngoài reorder còn thiếu mapping, không tự coi mọi thao tác idempotent.
+Schema đã có FK và unique constraint deferred. Giao dịch khi track/chủ đổi trạng thái còn DEC-022. Response/error và các lần thêm/gỡ lặp còn DEC-005/017. [Mô hình dữ liệu](../architecture/data-model.md#target-model).
 
 ### Trước lần chấp nhận phương án đơn giản — lịch sử giữ nguyên
 
@@ -586,7 +600,7 @@ Cần xác nhận backend chỉ trả text hay cung cấp cấu trúc thời gia
 
 ## DEC-022 Ràng buộc schema đích
 
-Trạng thái: `OPEN`. Mô hình logic được xác nhận ngày **17/11/2026** ([bằng chứng](#evidence-simple-2026-11-17)). Phạm vi migration đầu tiên được xác nhận ngày **18/11/2026**.
+Trạng thái: `OPEN` cho chi tiết vận hành ngoài DDL khởi tạo. Mô hình logic được xác nhận ngày **17/11/2026**, ba bảng tài khoản ngày **18/11/2026**, và schema khởi tạo chín bảng ngày **20/11/2026**. [Bằng chứng mới](#evidence-single-migration-2026-11-20).
 
 ### Kết quả hiện hành đã xác nhận
 
@@ -596,9 +610,15 @@ Giữ năm bảng, thêm otp_challenges (digest/purpose/thời hạn/lần sai/�
 
 Ngày 18/11/2026 (Asia/Saigon), người dùng xác nhận trong phiên làm việc: “Migration khởi tạo DB mới”. Chuỗi migration bắt đầu trên PostgreSQL 18 trống để dựng schema đích. Phạm vi khởi tạo không bao gồm nâng cấp schema cũ, chuyển dữ liệu/hash Bcrypt/timestamp cũ hoặc nạp seed demo. [Mô hình dữ liệu](../architecture/data-model.md#target-model), [thiết lập local](../development/local-setup.md), [TC-19](../testing/acceptance.md#tc-19).
 
+Xác nhận tiếp theo cùng ngày chọn `users`, `otp_challenges` và `auth_sessions` cho migration bootstrap ban đầu, cùng cột/khóa/index/default/null của ba bảng và thứ tự khóa auth theo hàng user trước. Phương án lúc đó bổ sung các bảng theo từng luồng. [Xác nhận](#evidence-bootstrap-auth-2026-11-18), [schema tài khoản](../architecture/data-model.md#initial-auth-schema), [giao dịch auth](../architecture/security-and-media.md#auth-transaction-order).
+
+<a id="evidence-single-migration-2026-11-20"></a>
+
+Ngày 20/11/2026, sau khi yêu cầu hoàn thiện database trong một migration, người dùng chọn “Chốt schema, gom thành một file cho DB trống (Khuyến nghị)”. Xác nhận schema sáu bảng còn lại trong kế hoạch, giữ DDL ba bảng tài khoản và dùng một migration cho PostgreSQL 18 trống. [Kế hoạch](../plans/2026-11-20-consolidate-database-migration.md), [ADR-0007](adr-0007-single-initial-database-migration.md), [schema chín bảng](../architecture/data-model.md#target-model).
+
 ### Phần còn thiếu và giới hạn
 
-Còn tên/kiểu cột, FK/index/default/null, mapping creatorStatus/kênh theo hồ sơ, OTP/user/counters và thứ tự khóa. Seed demo và fixture còn DEC-020. Media còn active/đối chiếu COMMIT/danh sách dọn chống race. Chín bảng nghiệp vụ đích không phải DDL hoặc giới hạn mọi bảng kỹ thuật tương lai.
+Còn thứ tự khóa và giao dịch khi API cập nhật nhiều bảng, gồm xét duyệt Creator, track/playlist, cooldown và recovery media. Schema hỗ trợ IP limit bổ sung nếu phạm vi đếm ở DEC-003 cần dữ liệu ngoài `otp_challenges`. Seed demo và fixture còn DEC-020. [Hiện trạng migration](../project/status.md#single-database-migration-2026-11-20).
 
 ### Trước lần chấp nhận phương án đơn giản — lịch sử giữ nguyên
 

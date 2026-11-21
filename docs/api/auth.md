@@ -16,7 +16,7 @@
 
 ### Đầu vào đang được mô tả
 
-CONFIRMED: username, email và password để tạo Listener; email trim/lowercase. Password 12–128 ký tự/cho khoảng trắng/không trim đã CONFIRMED; giới hạn username 2–50 ký tự cũ còn DRAFT. Không có isCreator/channelName/bio trong nghiệp vụ đăng ký. Verify body {email,otp} tại API-30; resend/status/response còn chi tiết DEC-003/005.
+CONFIRMED: username, email và password để tạo Listener. Username 2–50 ký tự sau trim, cho phép trùng. Email trim/lowercase và duy nhất. Password 12–128 ký tự, cho khoảng trắng và giữ nguyên khi xác minh. Hồ sơ Creator có luồng riêng. Verify body `{email,otp}` tại API-30. Resend/status/response còn DEC-003/005/017. [Schema khởi tạo](../architecture/data-model.md#initial-auth-schema).
 
 ### Đầu ra minh họa
 
@@ -32,7 +32,7 @@ Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/
 
 ### Tác động dữ liệu và giới hạn
 
-CONFIRMED: đăng ký Listener, xác minh OTP email thật rồi login riêng. Không nhận thông tin Creator trong API-01. User tạo với email_verified_at NULL; Resend HTTPS/HMAC PostgreSQL/5 lần gửi-email-giờ đã chốt. Route verify/resend API-30/31, status/response/schema còn DEC-003/005/022; không coi response tiếp nhận là tài khoản đã hoạt động.
+CONFIRMED: đăng ký Listener với `email_verified_at` là `NULL`, xác minh OTP email thật rồi login riêng. Giới hạn 5 lượt gửi đã ghi/email/giờ. Verify/resend qua API-30/31. Chi tiết status/response và đăng ký lại còn DEC-003/005/017. [Vòng đời OTP](../architecture/security-and-media.md#otp-delivery).
 
 Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
 
@@ -95,7 +95,7 @@ Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/
 
 ### Tác động dữ liệu và giới hạn
 
-CONFIRMED: email đã xác minh, user hoạt động, mật khẩu đúng → JWT + auth_sessions 24 giờ tuyệt đối; cookie bảo vệ, không JWT trong JSON, chưa refresh token. Mỗi login tạo phiên độc lập. Cookie soundwave_session/X-CSRF-Token/jose HS256 đã chọn; response/lifecycle/Domain/Origin và lỗi chưa verified còn DEC-003/014/017.
+CONFIRMED: email đã xác minh, user hoạt động và mật khẩu đúng thì tạo phiên độc lập và JWT HS256 24 giờ tuyệt đối. Cookie `soundwave_session` mang JWT. Login kiểm tra lại hash và trạng thái dưới khóa hàng user trước khi tạo phiên. Response, Domain, Origin và lỗi chưa xác minh còn DEC-003/017. [Giao dịch auth](../architecture/security-and-media.md#auth-transaction-order).
 
 Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
 
@@ -207,7 +207,7 @@ Kiểm thử dự kiến: [TC-03](../testing/acceptance.md#tc-03), [TC-05](../te
 
 Đặc tả CONFIRMED trong phạm vi ghi dưới; wire còn DRAFT, triển khai NOT_IMPLEMENTED/kiểm chứng NOT_RUN. [Xác nhận](../decisions/open-decisions.md#evidence-simple-2026-11-17), [quy ước](README.md), [BR-003](../requirements/business-rules.md#br-003).
 
-Public, JSON/kiểm Origin. Body CONFIRMED: {email,otp}. OTP đăng ký đúng/hợp lệ/một lần kích hoạt email_verified_at; không tự login. Mã sáu số/năm phút/ba sai theo BR-003. Success status/response/field chi tiết/transaction còn DEC-003/005/017/022. TC-01/02.
+Public, JSON và kiểm Origin. Body CONFIRMED `{email,otp}`. OTP đăng ký đúng/hợp lệ/một lần kích hoạt `email_verified_at`. User đăng nhập riêng sau khi xác minh. Mã sáu số, hạn năm phút, lần sai thứ ba vô hiệu hóa theo BR-003. Success status/response/field chi tiết còn DEC-003/005/017. [Giao dịch auth](../architecture/security-and-media.md#auth-transaction-order), TC-01/02.
 
 <a id="api-31"></a>
 
@@ -217,7 +217,7 @@ Public, JSON/kiểm Origin. Body CONFIRMED: {email,otp}. OTP đăng ký đúng/h
 
 Đặc tả CONFIRMED trong phạm vi ghi dưới; wire còn DRAFT, triển khai NOT_IMPLEMENTED/kiểm chứng NOT_RUN. [Xác nhận](../decisions/open-decisions.md#evidence-simple-2026-11-17), [quy ước](README.md), [BR-003](../requirements/business-rules.md#br-003).
 
-Public, JSON/kiểm Origin. Gửi lại OTP đăng ký sau 60 giây/hủy cũ, <=5 lần gửi/email/giờ/IP limit. User vẫn chưa verified; mail lỗi không tạo user trùng. Body/response/status/counters/IP threshold/timeout còn DEC-003/005/017/022, không tự coi {email} là schema cuối. TC-02.
+Public, JSON và kiểm Origin. Gửi lại OTP đăng ký sau 60 giây, vô hiệu hóa mã cũ và áp giới hạn 5 lượt đã ghi/email/giờ. User tiếp tục ở trạng thái chưa xác minh nếu mail lỗi. Body/response/status, IP limit, timeout cụ thể và xử lý `reserved` còn DEC-003/005/017/022. [Vòng đời OTP](../architecture/security-and-media.md#otp-delivery), TC-02.
 
 <a id="api-32"></a>
 
@@ -227,7 +227,7 @@ Public, JSON/kiểm Origin. Gửi lại OTP đăng ký sau 60 giây/hủy cũ, <
 
 Đặc tả CONFIRMED trong phạm vi ghi dưới; wire còn DRAFT, triển khai NOT_IMPLEMENTED/kiểm chứng NOT_RUN. [Xác nhận](../decisions/open-decisions.md#evidence-simple-2026-11-17), [quy ước](README.md), [BR-003](../requirements/business-rules.md#br-003).
 
-Public, JSON/kiểm Origin. Yêu cầu OTP reset qua Resend cho user verified/chưa khóa; phản hồi chung không tiết lộ email tồn tại. Body/status/response/cạnh tranh/gửi timeout và cách phản hồi provider lỗi còn DEC-003/005/017/022. TC-04.
+Public, JSON và kiểm Origin. Yêu cầu OTP reset qua Resend cho user đã xác minh và chưa khóa. Phản hồi chung bảo vệ thông tin tài khoản. Body/status/response, timeout cụ thể, phản hồi khi provider lỗi và phạm vi đếm IP còn DEC-003/005/017/022. [Vòng đời OTP](../architecture/security-and-media.md#otp-delivery), TC-04.
 
 <a id="api-33"></a>
 
@@ -237,7 +237,7 @@ Public, JSON/kiểm Origin. Yêu cầu OTP reset qua Resend cho user verified/ch
 
 Đặc tả CONFIRMED trong phạm vi ghi dưới; wire còn DRAFT, triển khai NOT_IMPLEMENTED/kiểm chứng NOT_RUN. [Xác nhận](../decisions/open-decisions.md#evidence-simple-2026-11-17), [quy ước](README.md), [BR-003](../requirements/business-rules.md#br-003).
 
-Public, JSON/kiểm Origin. Body CONFIRMED {email,otp,newPassword}; password 12–128 ký tự/không trim. User verified/chưa khóa/OTP hợp lệ → hash scrypt và thu hồi mọi phiên nguyên tử, không tự login. Success status/response/lỗi/OTP purpose/schema còn DEC-003/005/017/022. TC-04/05.
+Public, JSON và kiểm Origin. Body CONFIRMED `{email,otp,newPassword}`. Giữ nguyên password 12–128 ký tự. User đã xác minh, chưa khóa và có OTP reset hợp lệ được đổi hash scrypt, đánh dấu mã đã dùng và thu hồi mọi phiên trong một transaction. User đăng nhập riêng sau reset. Success status/response/lỗi còn DEC-003/005/017. [Giao dịch auth](../architecture/security-and-media.md#auth-transaction-order), TC-04/05.
 
 <a id="api-34"></a>
 
@@ -247,7 +247,7 @@ Public, JSON/kiểm Origin. Body CONFIRMED {email,otp,newPassword}; password 12�
 
 Đặc tả CONFIRMED trong phạm vi ghi dưới; wire còn DRAFT, triển khai NOT_IMPLEMENTED/kiểm chứng NOT_RUN. [Xác nhận](../decisions/open-decisions.md#evidence-simple-2026-11-17), [quy ước](README.md), [BR-003](../requirements/business-rules.md#br-003).
 
-Auth cookie/phiên hiện tại, X-CSRF-Token/Origin. Body CONFIRMED {currentPassword,newPassword}; kiểm mật khẩu hiện tại, scrypt mật khẩu mới và thu hồi mọi phiên kể cả hiện tại, phải login lại. Success status/response/lỗi chi tiết và race còn DEC-005/017/022. TC-04/05.
+Auth qua cookie/phiên hiện tại, `X-CSRF-Token` và Origin. Body CONFIRMED `{currentPassword,newPassword}`. Kiểm mật khẩu hiện tại, dùng scrypt cho mật khẩu mới và thu hồi mọi phiên. User đăng nhập lại. Success status/response/lỗi chi tiết còn DEC-005/017. [Giao dịch auth](../architecture/security-and-media.md#auth-transaction-order), TC-04/05.
 
 <a id="api-39"></a>
 
@@ -257,4 +257,4 @@ Auth cookie/phiên hiện tại, X-CSRF-Token/Origin. Body CONFIRMED {currentPas
 
 Đặc tả CONFIRMED trong phạm vi ghi dưới; wire còn DRAFT, triển khai NOT_IMPLEMENTED/kiểm chứng NOT_RUN. [Xác nhận](../decisions/open-decisions.md#evidence-simple-2026-11-17), [quy ước](README.md), [BR-003](../requirements/business-rules.md#br-003).
 
-Protected API đọc phiên hiện tại, 200 theo quy ước đọc. Cấp/trả token CSRF ngẫu nhiên lưu cùng phiên; client dùng X-CSRF-Token cho protected request ghi. Không trả JWT hoặc OTP. Response field/headers/cấp lại-thu hồi/Origin policy còn DEC-005/017; không tự coi token đổi mỗi GET hoặc thiết lập phiên anonymous. TC-03/05.
+Protected API đọc phiên hiện tại, 200 theo quy ước đọc. Trả token CSRF ổn định được lưu cùng phiên. Client dùng `X-CSRF-Token` cho protected request ghi. Response field/headers, xử lý phiên đã thu hồi và Origin còn DEC-005/017. TC-03/05.

@@ -158,24 +158,51 @@ Hướng dẫn thao tác dữ liệu ở [local setup](../development/local-setu
 
 <a id="target-model"></a>
 
-## Mô hình đích — chưa triển khai
+## Mô hình đích
 
-Nguồn [xác nhận đơn giản](../decisions/open-decisions.md#evidence-simple-2026-11-17), [ADR-0005](../decisions/adr-0005-simple-backend-contracts.md). Năm bảng/40 cột/chín index phía trên là DDL hiện có/không đổi/chưa chạy. Đích giữ năm bảng và thêm bốn bảng; chưa có CREATE TABLE hoặc migration đích.
+Mô hình đầy đủ giữ năm bảng nghiệp vụ và bổ sung bốn bảng. [Migration khởi tạo](../../backend/migrations/20261120000000000_create-initial-schema.js) tạo đủ chín bảng. Năm bảng/40 cột/chín index phía trên mô tả DDL reset cũ. [ADR-0007](../decisions/adr-0007-single-initial-database-migration.md).
 
 | Thành phần | CONFIRMED | Chi tiết còn OPEN |
 | --- | --- | --- |
-| users | Email trim/lowercase UNIQUE, email_verified_at NULL lúc đăng ký, password scrypt, users.role nguồn quyền | FK/default/null, định dạng hash |
-| otp_challenges | Purpose đăng ký/reset, digest HMAC/secret riêng, thời hạn/số thử/đã dùng/PostgreSQL | Cột/kiểu/FK/UNIQUE/index, counters/IP limit, timeout/lỗi/giao dịch resend-verify |
-| auth_sessions | UUID/user/thời hạn/thu hồi/CSRF; 24 giờ tuyệt đối/nhiều phiên/bền restart | Cột/kiểu/FK/index/null/default, key/CSRF lifecycle/lock order |
-| creator_applications | Tên kênh/bio/lĩnh vực/ngày nộp/trạng thái/người-ngày duyệt/lý do, một pending/user/lịch sử | Cột/kiểu/FK/index, creatorStatus suy ra hồ sơ/mapping nhiều lần nộp/kênh duyệt |
-| listen_cooldowns | Track/người nghe/mốc gần nhất, trượt 30 phút/giữ bảy ngày rồi dọn | Cột/kiểu/khóa user hoặc Guest UUID/FK/UNIQUE/index/cạnh tranh/scheduler |
-| tracks | Duration ffprobe ceiling INT >0/play_count >=0, UUID/storage path nội bộ/audioUrl; search_text cùng metadata | Cột/default/index/migration; pg_trgm chỉ xem xét sau đo |
-| playlist_tracks | sort_order >0/từ 1/UNIQUE thứ tự lúc commit/khóa playlist; reorder ID hiển thị/ẩn cuối | DDL deferred/lock order với trạng thái track-user/read mapping |
-| Chung | TIMESTAMPTZ/UTC/ảnh mặc định/soft delete giữ hàng-file-liên kết, migration có phiên bản khởi tạo DB mới, seed riêng | PK/FK/index/default/null, chưa có SQL đích |
+| users | Email trim/lowercase UNIQUE, email_verified_at NULL lúc đăng ký, password scrypt và users.role là nguồn quyền. [Schema khởi tạo](#initial-auth-schema). | Chi tiết wire DEC-017. |
+| otp_challenges | Mục đích đăng ký/reset, HMAC với secret riêng, thời hạn/số lần sai và trạng thái gửi. [Schema khởi tạo](#initial-auth-schema). | IP limit, xử lý `reserved` bị gián đoạn và wire DEC-003/005/017. |
+| auth_sessions | UUID/user/thời hạn/thu hồi/CSRF, 24 giờ tuyệt đối, nhiều phiên, bền qua restart. [Schema khởi tạo](#initial-auth-schema). | Wire và Origin DEC-017. |
+| creator_applications | Hồ sơ, dữ liệu kênh hiện tại, một pending và một approved/user | Thứ tự khóa khi review và thao tác đồng thời DEC-022. |
+| genres, tracks | Genre có tên và slug UNIQUE. Track có FK thể loại/chủ, thời lượng dương, lượt nghe không âm và `search_text` bắt buộc. | `pg_trgm` chỉ xem xét sau phép đo DEC-012. Recovery media còn DEC-022. |
+| listen_cooldowns | Một định danh user hoặc Guest UUID, một hàng theo cặp track/định danh, index mốc đếm | Giao dịch đếm đồng thời và scheduler còn DEC-022. |
+| playlists, playlist_tracks | Playlist thuộc user. PK cặp, sort_order >0, UNIQUE thứ tự kiểm lúc commit | Thứ tự khóa với trạng thái track/user và đọc reorder ở DEC-022. |
+| Chung | TIMESTAMPTZ/UTC, ảnh mặc định do app cấp, soft delete giữ hàng-file-liên kết, seed riêng | Wire và vận hành thuộc các DEC tương ứng. |
 
-Schema đích suy ra `creatorStatus` từ hồ sơ. Cột `users.creator_status` thuộc DDL cũ và được mô tả ở từ điển. API-25 dùng application ID, ngày nộp và lịch sử xét duyệt lấy từ hồ sơ.
+`creatorStatus` suy ra từ hồ sơ mới nhất theo `submitted_at DESC, id DESC`, hoặc `none` nếu chưa có hồ sơ. `users.role` cấp quyền. API-25 dùng application ID. Cột `submitted_channel_name`/`submitted_bio` giữ dữ liệu lúc nộp. Hồ sơ đã duyệt lưu `channel_name`/`channel_bio` cho kênh hiện tại. Hồ sơ đã xét cần người duyệt và mốc duyệt. `rejection_reason` chỉ dùng cho hồ sơ bị từ chối.
 
-Khóa hàng user khi login/khóa/đổi mật khẩu, hàng hồ sơ khi review; reset thay hash/thu hồi phiên nguyên tử. Cooldown/tăng play_count cùng transaction. Ban chỉ tạm ẩn, không UPDATE tracks.deleted_at; unban không hồi sinh phiên/track gỡ. Lock order/race cần cụ thể ở DEC-022, chưa là code hoàn chỉnh.
+Giao dịch auth lấy khóa hàng user trước theo [vòng đời auth](security-and-media.md#auth-transaction-order). Review khóa hàng hồ sơ, cooldown và tăng `play_count` cùng transaction. Ban tạm ẩn track của Creator. Unban chỉ hiện lại track chưa bị gỡ và yêu cầu đăng nhập lại. Thứ tự khóa giữa các bảng nghiệp vụ sau auth còn ở DEC-022.
+
+<a id="initial-auth-schema"></a>
+
+### Schema tài khoản
+
+Ba bảng tài khoản được xác nhận ngày 18/11/2026 và được giữ trong migration chín bảng. Các cột bắt buộc trừ những cột ghi nullable. Mọi mốc thời gian dùng `TIMESTAMPTZ`. [DEC-022](../decisions/open-decisions.md#dec-022), [xác nhận](../decisions/open-decisions.md#evidence-bootstrap-auth-2026-11-18).
+
+| Bảng | Cột | Khóa, ràng buộc và index |
+| --- | --- | --- |
+| `users` | `id` integer identity, `username` varchar(50), `email` varchar(254), `password_hash` text, `role` text mặc định `listener`, `created_at` mặc định thời điểm hiện tại. `email_verified_at`, `deleted_at` dùng `TIMESTAMPTZ` và `avatar_url` là cột văn bản, cả ba nullable. | PK `id`, `UNIQUE` trên `email`. App chuẩn hóa email bằng trim/lowercase tại một điểm. `CHECK` role thuộc `listener`, `creator`, `admin`. Username 2–50 ký tự sau trim, cho phép trùng. App trả ảnh mặc định khi thiếu `avatar_url`. |
+| `otp_challenges` | `id` UUID, `user_id` integer, `purpose` text, `code_digest` bytea, `failed_attempts` smallint mặc định 0, `request_ip` inet, `delivery_status` text, `created_at`, `expires_at`. `consumed_at` và `invalidated_at` nullable. | PK `id`, FK `user_id` → `users.id` với `ON DELETE RESTRICT`. `CHECK` mục đích xác minh email hoặc reset mật khẩu, digest dài 32 byte, lần sai từ 0 đến 3, tối đa một mốc kết thúc được ghi. Trạng thái gửi thuộc `reserved`, `accepted`, `failed`, `unknown`. Unique index trên `(user_id, purpose)` khi cả hai mốc kết thúc là `NULL`. App đóng mã cũ hoặc mã hết hạn trong transaction trước khi cấp mã thay thế. Index `(user_id, created_at)` và `(request_ip, created_at)` phục vụ đếm lượt gửi. |
+| `auth_sessions` | `id` UUID, `user_id` integer, `csrf_token` bytea ngẫu nhiên 32 byte, `created_at`, `expires_at`. `revoked_at` nullable. | PK `id`, FK `user_id` → `users.id` với `ON DELETE RESTRICT`. Index `user_id` dùng để thu hồi toàn bộ phiên. Tính hạn tuyệt đối 24 giờ cho `expires_at` và JWT `exp` từ cùng mốc tạo phiên. CSRF token ổn định trong phiên. |
+
+Migration biểu diễn mục đích OTP bằng `verify_email` và `reset_password`. Unique index OTP dựa trên hai mốc kết thúc. Kiểm tra hết hạn thuộc giao dịch auth. Các lượt gửi đã ghi có `user_id` bắt buộc. Nếu DEC-003 chọn đếm cả yêu cầu reset cho email không tồn tại, cách lưu lượt đó cần quyết định riêng.
+
+### Schema sáu bảng nghiệp vụ bổ sung
+
+Các FK dùng `ON DELETE RESTRICT`. Cột tự sinh của `creator_applications`, `genres`, `tracks` và `playlists` là `integer` identity. Các mốc ngày giờ dùng `TIMESTAMPTZ`. [DDL](../../backend/migrations/20261120000000000_create-initial-schema.js).
+
+| Bảng | Ràng buộc chính |
+| --- | --- |
+| `creator_applications` | Hai unique index có điều kiện cho một `pending` và một `approved` mỗi user. Giữ snapshot lúc nộp và dữ liệu kênh có thể sửa sau duyệt. |
+| `genres` | `name` và `slug` bắt buộc và mỗi cột duy nhất. `description` tùy chọn. |
+| `tracks` | `track_type` nhận `music`/`podcast`. `duration > 0`, `play_count >= 0` mặc định 0, `search_text` bắt buộc. CHECK độ dài văn bản theo BR-006 và `lyrics` chỉ dùng cho music. Cover và `deleted_at` nullable. Index mới nhất/trending áp dụng cho track chưa bị gỡ. |
+| `listen_cooldowns` | Có đúng một trong `user_id` hoặc `guest_id`, khóa duy nhất `NULLS NOT DISTINCT (track_id, user_id, guest_id)` và index `last_counted_at` để dọn. |
+| `playlists` | Có chủ và tên. Mô tả, cover và `deleted_at` nullable. |
+| `playlist_tracks` | PK `(playlist_id, track_id)`, `sort_order > 0`, UNIQUE vị trí `DEFERRABLE INITIALLY DEFERRED`. |
 
 ### Media và recovery state
 
@@ -183,4 +210,4 @@ Khóa hàng user khi login/khóa/đổi mật khẩu, hàng hồ sơ khi review;
 
 ### Migration khởi tạo
 
-Theo [DEC-022 ngày 18/11/2026](../decisions/open-decisions.md#evidence-initial-migration-2026-11-18), migration có phiên bản dùng `node-pg-migrate` để khởi tạo schema đích trên PostgreSQL 18 trống. DDL/seed reset cũ nằm ngoài luồng khởi tạo. Seed demo được chuẩn bị riêng với hash scrypt và kiểm chứng đăng nhập sau xác minh email theo DEC-020. Chưa có file migration.
+Theo [DEC-022](../decisions/open-decisions.md#evidence-single-migration-2026-11-20), [migration khởi tạo](../../backend/migrations/20261120000000000_create-initial-schema.js) tạo chín bảng trên PostgreSQL 18 trống. `node-pg-migrate` lưu một dòng lịch sử ở `public.pgmigrations`. Seed demo riêng thuộc DEC-020. [Kết quả kiểm chứng migration](../project/status.md#single-database-migration-2026-11-20).
