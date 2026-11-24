@@ -1,6 +1,6 @@
 # Chiến lược kiểm thử backend và database
 
-Lựa chọn nghiệp vụ `CONFIRMED` theo [sổ DEC](../decisions/open-decisions.md). Protocol và wire chưa đủ giữ `DRAFT`. Đã có `node:test` cho bootstrap HTTP và migration đầu tiên. Các TC nghiệp vụ đầy đủ vẫn `NOT_RUN`. [Nghiệm thu](acceptance.md), [bằng chứng bootstrap](../project/status.md#backend-bootstrap-run-2026-11-18).
+Lựa chọn nghiệp vụ `CONFIRMED` theo [sổ DEC](../decisions/open-decisions.md). Protocol và wire chưa đủ giữ `DRAFT`. `npm test` dùng `node:test` để kiểm bootstrap HTTP và migration khởi tạo chín bảng. Phần DDL khởi tạo của TC-19 đã `PASS`. Các TC đầy đủ vẫn `NOT_RUN`. [Nghiệm thu](acceptance.md), [bằng chứng chạy](../project/status.md#single-database-migration-2026-11-20).
 
 ## Phạm vi
 
@@ -16,13 +16,13 @@ Kiểm thử tài khoản, API, phân quyền và sở hữu, lifecycle dữ li�
 | Database | FK, UNIQUE, CHECK, default, seed/sequence và rollback | Đúng engine/version, dữ liệu dùng riêng |
 | Media | File upload, thất bại từng phần, truy cập trực tiếp và Range | Nơi lưu, chính sách truy cập và file demo được xác nhận |
 | Nghiệm thu nghiệp vụ | Luồng Creator → tác phẩm → tìm kiếm → playlist → kiểm duyệt | Các hợp đồng liên quan ổn định và bằng chứng từng bước |
-| Hiệu năng/phục hồi | Đạt ngưỡng và tái hiện được dữ liệu | Protocol đo/backup đã chốt, không tự đặt tải hoặc SLA |
+| Hiệu năng/phục hồi file | Đạt ngưỡng local và giữ nhất quán DB/file khi lỗi | Protocol đo thuộc DEC-015; recovery file thuộc DEC-022. |
 
 ## Dữ liệu và môi trường
 
 Chuẩn bị fixture riêng: user chưa/đã xác minh email, email provider thử và cookie/CSRF; Listener A/B; Creator A/B đã duyệt; user pending/rejected/locked; Admin; track music/podcast/đã gỡ; playlist của hai user; genre đang được tham chiếu; MP3 CBR/VBR, giả đuôi/sai codec/lỗi giải mã, cover default/shared, file hợp lệ/quá giới hạn/sai nội dung và file không tồn tại. Đây là nhu cầu test, chưa phải tài khoản/file được tạo.
 
-Seed demo, hash, quyền sử dụng file và quan hệ metadata cần DEC-020. Lệnh đích `npm test` đọc `.env.test`, yêu cầu `TEST_DATABASE_URL`, áp migration và chạy `node:test` với HTTP `fetch`. Chạy tuần tự khi dùng chung DB thử. Tách fixture test khỏi seed demo, dùng Resend giả lập trong test tích hợp và Resend thật khi nghiệm thu email. [Thiết lập local](../development/local-setup.md), [DEC-020](../decisions/open-decisions.md#dec-020), [TC-19](acceptance.md#tc-19).
+Seed demo, hash, quyền sử dụng file và quan hệ metadata cần DEC-020. Lệnh `npm test` ở `backend/` đọc `.env.test` nếu có, yêu cầu `TEST_DATABASE_URL`, áp migration và chạy `node:test` với HTTP `fetch`. Chạy tuần tự khi dùng chung DB thử. Tách fixture test khỏi seed demo, dùng Resend giả lập trong test tích hợp và Resend thật khi nghiệm thu email. [Thiết lập local](../development/local-setup.md), [DEC-020](../decisions/open-decisions.md#dec-020), [TC-19](acceptance.md#tc-19).
 
 ## Phụ thuộc quyết định
 
@@ -54,11 +54,11 @@ Chưa chạy thì `NOT_RUN`, không ghi `PASS` từ mock, ví dụ JSON hay số
 
 ## Điều kiện kết thúc
 
-Nghiệm thu theo phạm vi UC và ngưỡng chất lượng được chốt ở DEC-001/DEC-015/DEC-016. Mọi TC thuộc phạm vi cần bằng chứng hoặc lý do blocked rõ ràng; blocked không được tính là pass. Test command và bộ kiểm tra cuối chỉ bổ sung khi toolchain tồn tại. Với thay đổi docs, dùng kiểm tra liên kết/coverage/whitespace và đọc thử luồng tra cứu; không chạy application test chưa có.
+Nghiệm thu theo phạm vi UC và ngưỡng chất lượng được chốt ở DEC-001/DEC-015/DEC-016. Mọi TC thuộc phạm vi cần bằng chứng hoặc lý do blocked rõ ràng; blocked không được tính là pass. Với thay đổi docs, kiểm tra liên kết, độ bao phủ, whitespace và đọc thử luồng tra cứu.
 
 ## Kiểm chứng tài liệu trong đợt đồng bộ
 
-Kiểm tra link/anchor và mã UC/BR/NFR/API/TC/DEC/ADR; JSON parse được, envelope/pagination thống nhất; route/method danh mục khớp trang nhóm; 204 không body, login không token JSON, đăng ký không Creator payload. Đối chiếu từ điển DDL hiện có với schema.sql bằng đọc tĩnh, không chạy SQL; schema đích không bị kiểm như đã triển khai. Kiểm tra diff/whitespace cả file mới và phạm vi chỉ docs/điểm vào. Bằng chứng đợt mới ghi riêng tại status, không sửa kết quả lịch sử 11/11/2026.
+Kiểm tra link/anchor và mã UC/BR/NFR/API/TC/DEC/ADR; JSON parse được, envelope/pagination thống nhất; route/method danh mục khớp trang nhóm; 204 không body, login không token JSON, đăng ký không Creator payload. Khi kiểm tra docs, đối chiếu mô hình chín bảng với migration hiện hành và phần DDL cũ với `database/schema.sql` bằng đọc tĩnh. Kiểm tra diff/whitespace cả file mới và phạm vi chỉ docs/điểm vào. Bằng chứng đợt mới ghi riêng tại status, không sửa kết quả lịch sử 11/11/2026.
 
 ## Bổ sung kiểm chứng media
 
@@ -70,4 +70,4 @@ Các failpoint upload phải phân biệt rollback đã biết với COMMIT khô
 
 Nguồn [xác nhận](../decisions/open-decisions.md#evidence-simple-2026-11-17), không có runtime mới. node:test/fetch/PostgreSQL thử riêng/ESLint là công cụ đích. Cần fixture password biên 12–128/có khoảng trắng và scrypt salt khác nhau; Resend thật, user email_verified_at NULL, HMAC OTP/lượt gửi/cooldown; cookie soundwave_session/HS256/CSRF header-Origin; keyword 100 ký tự-10 từ/đ-Đ/Unicode/literal wildcard/search_text cập nhật cùng metadata; text theo type/HTML/rỗng-null; Guest UUID ký/login chuyển ID/cooldown trượt-bảy ngày; reorder hiển thị/ẩn cuối-hiện lại cuối/tập đổi 409/hai reorder hợp lệ tuần tự/UNIQUE lúc commit.
 
-Điều khiển clock và thứ tự thực thi transaction để kiểm cooldown, thứ tự và quyền. Kiểm tra login đang xử lý khi reset commit, OTP gửi đồng thời, kết quả `failed`/`unknown` và CSRF token ổn định. Client `listenedSeconds` là tín hiệu do client báo và Guest chuyển user có thể thêm lượt. Khi thực thi nhánh thiếu expected về IP limit, `reserved`, CSRF response, Origin hay thứ tự khóa ngoài auth, ghi `BLOCKED` cùng DEC-003/005/014/017/022 tương ứng. [Giao dịch auth](../architecture/security-and-media.md#auth-transaction-order), [vòng đời OTP](../architecture/security-and-media.md#otp-delivery).
+Điều khiển clock và thứ tự transaction khi kiểm cooldown, hạn mức theo email, reset/thu hồi phiên, OTP gửi đồng thời và `failed`/`unknown`. Với TC-04 so sánh status, body và thời gian phản hồi. TC-21 kiểm dữ liệu qua restart, phát media local và lỗi DB/file. Nhánh thiếu expected về HTTP hoặc giao dịch ghi `BLOCKED` cùng DEC-017/022 tương ứng. [Vòng đời OTP](../architecture/security-and-media.md#otp-delivery), [phạm vi local](../decisions/open-decisions.md#evidence-local-runtime-2026-11-22).

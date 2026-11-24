@@ -4,7 +4,7 @@ Cập nhật 17/11/2026: cách giao việc/phạm vi bên dưới có phần CON
 
 ## Cách quản lý đã xác nhận ngày 17/11/2026
 
-Theo [DEC-016](../decisions/open-decisions.md#dec-016), chọn Trello; mỗi việc có người phụ trách, đầu ra và tiêu chí hoàn thành. Dùng phạm vi MVP đã chọn tại [DEC-001](../decisions/open-decisions.md#dec-001). Đích sẵn sàng online, OTP email thật, nhạc/podcast local máy chủ; không mặc định offline hoặc chi phí hosting/email bằng 0.
+Theo [DEC-016](../decisions/open-decisions.md#dec-016), chọn Trello; việc có người phụ trách, đầu ra và tiêu chí hoàn thành. Phạm vi local trên Windows/PowerShell, OTP email thật và media trên filesystem của máy chạy backend. [ADR-0010](../decisions/adr-0010-local-runtime-scope.md) ghi các hướng mở rộng.
 
 Cần lập lại lịch theo deadline/nguồn lực thực; xác nhận riêng người chốt nghiệp vụ, kỹ thuật và nghiệm thu. Chưa có tên/ngày mới, giờ cam kết hoặc baseline chi phí/rủi ro; không tự gán từ vai trò dưới đây. Các quyết định docs ngày 17/11 do người dùng trong phiên xác nhận, không chứng minh tổ chức đã bổ nhiệm vai trò lâu dài. Chưa thao tác Trello hoặc cấu hình bảo vệ nhánh.
 
@@ -73,7 +73,7 @@ Không xem số quy đổi là tiền đã chi hoặc ngân sách được duy�
 | R02 | File audio lớn ảnh hưởng hiệu năng | 2 × 3 = 6 | Kiểm tra dung lượng, dùng bộ demo phù hợp, kiểm chứng phục vụ media |
 | R03 | Xung đột mã nguồn khi tích hợp | 2 × 2 = 4 | Thay đổi tập trung, review trước tích hợp |
 | R04 | Quyền sử dụng nội dung demo không rõ | 1 × 2 = 2 | Xác nhận giấy phép và bộ media ở DEC-020 |
-| R05 | Filesystem máy chủ mất dữ liệu/hết dung lượng qua deploy | Chưa chấm điểm | Volume bền vững và backup/restore, DEC-009/014/016 |
+| R05 | Mất dữ liệu hoặc hết dung lượng ổ đĩa trên máy chạy local | Chưa chấm điểm | Kiểm tra dữ liệu sau restart và xử lý DB/file khi lỗi, DEC-009/022. |
 | R06 | Email OTP không tới người dùng/provider gián đoạn | Chưa chấm điểm | Resend HTTPS đã chọn; thiết lập domain/key, lỗi/resend và kiểm chứng email thật DEC-003/014 |
 
 Thang P/I 1–3 và phân loại điểm 6 chưa nhất quán; giữ điểm đề xuất, chưa chốt mức ưu tiên rủi ro. Khả năng phát sinh, chủ sở hữu và ngày rà soát cần cập nhật bằng bằng chứng thực tế.
@@ -82,6 +82,6 @@ Thang P/I 1–3 và phân loại điểm 6 chưa nhất quán; giữ điểm đ�
 
 Có kế hoạch trao đổi hàng tuần qua Zalo, sprint planning/review và kiểm thử chéo. Công cụ đã chọn là Trello theo DEC-016; GitHub Projects không là công cụ tiến độ song song được chọn. Repo này không chứng minh bảng công việc hay quy tắc bảo vệ nhánh đã được thiết lập.
 
-Tiêu chí đã chọn: đúng phạm vi cam kết, kiểm thử phù hợp, không còn Critical/High, có review/bằng chứng và một lần thử backup/restore thành công. Định nghĩa severity, protocol và người nghiệm thu còn DEC-015/DEC-016. [Workflow](../development/workflow.md) mô tả cách giao việc; [acceptance](../testing/acceptance.md) giữ các kịch bản, không ghi sẵn Pass.
+Tiêu chí nghiệm thu local gồm đúng phạm vi cam kết, kiểm thử phù hợp, không còn Critical/High, có review và bằng chứng. Diễn tập backup/restore thuộc hướng mở rộng. Định nghĩa severity, protocol đo và người nghiệm thu thuộc DEC-015/016. [Workflow](../development/workflow.md), [nghiệm thu](../testing/acceptance.md).
 
 Đợt [đơn giản hóa 17/11](../decisions/open-decisions.md#evidence-simple-2026-11-17) chọn công cụ và thứ tự triển khai, không bổ nhiệm RACI/đổi deadline/duyệt chi phí. Resend cần tài khoản/key/domain gửi xác minh chưa có; không coi chọn provider là đã có ngân sách/online hoặc nghiệm thu.

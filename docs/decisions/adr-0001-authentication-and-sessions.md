@@ -1,4 +1,6 @@
-# ADR-0001 Xác thực email và phiên JWT
+# ADR-0001 Xác thực và phiên đăng nhập
+
+Phạm vi online trong bối cảnh ban đầu được cập nhật thành local ở [ADR-0010](adr-0010-local-runtime-scope.md). Thiết kế JWT và phiên tiếp tục áp dụng.
 
 Trạng thái: **Accepted**, phạm vi lựa chọn kiến trúc ghi dưới đây. Ngày: **17/11/2026**, Asia/Saigon. Người xác nhận: người dùng trong phiên làm việc; [bằng chứng](open-decisions.md#evidence-2026-11-17).
 

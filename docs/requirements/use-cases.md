@@ -23,9 +23,9 @@ Lựa chọn nghiệp vụ được xác nhận ngày 17/11/2026; từng phần 
 
 ## UC01 Đăng ký tài khoản
 
-**CONFIRMED** — Tạo Listener có `email_verified_at` là `NULL`. Username 2–50 ký tự sau trim và có thể trùng. Email trim/lowercase và duy nhất. Password 12–128 ký tự, giữ nguyên khi xác minh. OTP qua Resend, sáu số/hạn năm phút/dùng một lần/ba lần sai. Gửi lại sau 60 giây vô hiệu hóa mã cũ. Tối đa 5 lượt đã ghi/email/giờ và có IP limit. Mail lỗi giữ user chưa xác minh và cho gửi lại. User đăng nhập riêng sau xác minh. [Vòng đời OTP](../architecture/security-and-media.md#otp-delivery).
+**CONFIRMED** — Tạo Listener có `email_verified_at` là `NULL`. Username 2–50 ký tự sau trim và có thể trùng. Email trim/lowercase và duy nhất. Password 12–128 ký tự. Xác minh email cần OTP và mật khẩu của lần đăng ký hiện tại, sau đó user đăng nhập riêng. Gửi lại cũng cần mật khẩu hiện tại. Email chưa xác minh có thể bắt đầu lại trên cùng tài khoản sau 24 giờ kể từ lượt cấp mã gần nhất. [BR-003](business-rules.md#br-003), [vòng đời OTP](../architecture/security-and-media.md#otp-delivery).
 
-BR-002/003 và TC-01/02. Còn IP limit, `reserved`, timeout cụ thể, đăng ký lại, status/response và chi tiết wire ở DEC-003/005/017/022. Nghiệm thu email thật cần tài khoản, API key và domain gửi xác minh. [API-01](../api/auth.md#api-01), [API-30](../api/auth.md#api-30), [API-31](../api/auth.md#api-31).
+BR-002/003 và TC-01/02. API-01/30/31 trả `emailVerified`; nhánh đăng ký trùng còn chờ xác minh hướng sang gửi lại. Local tính hạn mức theo email. Demo OTP thật cần tài khoản, API key và domain gửi xác minh của Resend. [API-01](../api/auth.md#api-01), [API-30](../api/auth.md#api-30), [API-31](../api/auth.md#api-31).
 
 <a id="uc02"></a>
 
@@ -33,7 +33,7 @@ BR-002/003 và TC-01/02. Còn IP limit, `reserved`, timeout cụ thể, đăng k
 
 **CONFIRMED:** login email/password khi verified/chưa khóa; JWT HS256/jose + auth_sessions 24 giờ/cookie soundwave_session, không refresh. Mỗi request kiểm phiên/user/quyền DB; logout riêng phiên, khóa/đổi/reset thu hồi tất cả, mở khóa login lại, approve quyền request kế tiếp. scrypt/CSRF/Origin theo BR-003/[security](../architecture/security-and-media.md).
 
-Reset dùng Resend OTP cho user đã xác minh và chưa khóa, phản hồi yêu cầu chung. User đăng nhập riêng sau verify/reset. Đổi nhận `currentPassword` và `newPassword`. Login kiểm lại hash dưới khóa hàng user, reset đổi hash/đánh dấu OTP/thu hồi phiên cùng transaction. DEC-003/005/014/017 còn wire, timeout cụ thể, `reserved`, CSRF response, Origin và Domain. TC-03/04/05. [Auth API](../api/auth.md), [giao dịch auth](../architecture/security-and-media.md#auth-transaction-order).
+Reset dùng Resend cho user đã xác minh và chưa khóa. Áp hạn mức email riêng và trả phản hồi chung `202` cho email hợp lệ về cú pháp, kể cả khi gửi lỗi. User đăng nhập riêng sau verify/reset. Đổi nhận `currentPassword` và `newPassword`, thành công thu hồi phiên và xóa cookie. Reset đổi hash, đánh dấu OTP và thu hồi phiên cùng transaction. Chi tiết HTTP còn DEC-017; migration để OTP local lưu `NULL` ở `request_ip` thuộc DEC-022. [Auth API](../api/auth.md), [TC-04](../testing/acceptance.md#tc-04).
 
 <a id="uc03"></a>
 
@@ -77,15 +77,15 @@ Shuffle/repeat/tua 15 giây/tốc độ thuộc client, không API mới. [API-0
 
 **CONFIRMED:** user kể cả Admin chỉ quản lý playlist mình: tạo/đọc/PATCH/soft delete/thêm/gỡ/[API-38 reorder](../api/playlists.md#api-38). Gửi toàn bộ ID đang hiển thị; backend khóa playlist/kiểm tập, liên kết ẩn giữ ở cuối/hiện lại cuối. Tập đổi 409/tải lại; hai reorder hợp lệ tuần tự/lần hoàn tất sau quyết định cuối. Từ 1/thêm cuối/gỡ đánh lại/UNIQUE kiểm lúc commit; ẩn không hiện/không đếm nhưng giữ liên kết. Playlist xóa không đọc/sửa.
 
-[Playlists API](../api/playlists.md), BR-004/007/008, DEC-019 ACCEPTED, TC-12/13/14/16. Response/lặp ngoài reorder/nullable DEC-005/017; schema/transaction với track-chủ đổi trạng thái DEC-022. Xóa playlist không xóa track/restore ngoài MVP.
+[Playlists API](../api/playlists.md), BR-004/007/008, DEC-005/019 ACCEPTED, TC-12/13/14/16. Thứ tự hiển thị trả theo API-38; thêm lại track đang hiển thị và gỡ liên kết đã vắng dùng kết quả đã chốt ở API-20/21. Nullable/lỗi ngoài phần đã chốt theo DEC-017, giao dịch với track/chủ đổi trạng thái theo DEC-022. Xóa playlist không xóa track/restore ngoài MVP.
 
 <a id="uc08"></a>
 
 ## UC08 Upload tác phẩm
 
-**Điều kiện:** Creator approved hoặc Admin không cần creator_status approved. **Luồng CONFIRMED:** nhận MP3 bắt buộc ≤30 MiB, JPG/PNG tùy chọn ≤5 MiB; gắn creator_id từ phiên; ffprobe đọc duration hữu hạn >0/ceiling INT giây, FFmpeg giải mã toàn file và Sharp kiểm tra/mã hóa cover. Lưu UUID vào vùng tạm/chính cùng filesystem; validation → transaction kiểm tra lại → chuyển file → ghi DB/commit → 201. Commit không rõ phải đối chiếu trước dọn; cleanup theo [vòng đời file](../architecture/security-and-media.md#file-lifecycle). Email/online không làm đổi nơi lưu audio sang cloud.
+**Điều kiện:** Creator approved hoặc Admin có quyền upload. **Luồng CONFIRMED:** nhận MP3 tối đa 30 MiB, JPG/PNG tối đa 5 MiB; lấy creator_id từ phiên; ffprobe đọc duration hữu hạn dương, làm tròn lên giây; FFmpeg giải mã toàn file, Sharp kiểm tra và mã hóa lại cover. File lưu trên máy chạy backend; vùng tạm và chính thức cùng filesystem. Validation → kiểm tra lại trong transaction → chuyển file → ghi DB/commit → 201. Commit không rõ phải đối chiếu trước dọn. [Vòng đời file](../architecture/security-and-media.md#file-lifecycle).
 
-**Ngoại lệ:** quyền, metadata/file sai, quá giới hạn, lỗi DB/file. File sai 400, quá dung lượng 413. Cơ chế publish/cleanup đã chọn, nhưng versions/timeout/concurrency, MIME khai báo bất nhất và dữ liệu nhận biết thao tác còn DEC-014/DEC-017/DEC-022. Chưa coi file/DB nhất quán là hành vi đã chạy.
+**Ngoại lệ:** quyền, metadata/file sai, quá giới hạn, lỗi DB/file. File sai 400, quá dung lượng 413. [Phiên bản và giới hạn xử lý](../architecture/security-and-media.md#upload-kiem-tra-file-va-duration) đã chốt theo DEC-014. MIME và wire lỗi phụ thuộc DEC-017; nhận biết thao tác active thuộc DEC-022.
 
 **Phụ thuộc:** [API-09](../api/tracks.md#api-09), BR-005/BR-006; [DEC-008](../decisions/open-decisions.md#dec-008), DEC-004/DEC-009/DEC-011/DEC-018/DEC-021. Nghiệm thu: TC-09.
 
@@ -95,7 +95,7 @@ Shuffle/repeat/tua 15 giây/tốc độ thuộc client, không API mới. [API-0
 
 **Luồng CONFIRMED:** Creator liệt kê tác phẩm mình qua /api/tracks/my-uploads, PATCH metadata/thay cover, xóa mềm; Admin sửa/gỡ mọi track. Không đổi chủ, không thay audio. Muốn bản thu khác tạo track mới; restore ngoài MVP.
 
-**Ngoại lệ:** khác chủ, đã gỡ, file/DB lỗi; Cover mới được lưu trước, DB khóa hàng/cập nhật/commit rồi mới đưa cover cũ vào danh sách dọn; rollback giữ ảnh cũ. Không xóa ảnh mặc định/còn tham chiếu. Wire multipart/null, validation/thao tác lặp và recovery state còn DEC-014/DEC-017/DEC-022.
+**Ngoại lệ:** khác chủ, đã gỡ, file/DB lỗi. Cover mới lưu trước; DB khóa hàng, cập nhật và commit rồi mới lên lịch dọn cover cũ. Rollback giữ ảnh cũ. Giữ ảnh mặc định và ảnh còn tham chiếu. Wire multipart/null và lỗi thao tác lặp thuộc DEC-017, recovery state thuộc DEC-022.
 
 **Phụ thuộc:** [API-10](../api/tracks.md#api-10), [API-11](../api/tracks.md#api-11), [API-12](../api/tracks.md#api-12), BR-004/BR-007; DEC-004/DEC-009/DEC-011/DEC-018. Nghiệm thu: TC-11/TC-16.
 
@@ -125,4 +125,4 @@ Shuffle/repeat/tua 15 giây/tốc độ thuộc client, không API mới. [API-0
 
 **CONFIRMED:** Listener verified/login nộp [API-35](../api/creator-applications.md#api-35), một pending/user/pending bất biến. Admin duyệt application ID qua [API-25](../api/admin.md#api-25)/khóa hàng hồ sơ; approve role creator/approved, reject không upload. Rejected POST hồ sơ mới/giữ lịch sử qua [API-36](../api/creator-applications.md#api-36); ngày nộp khác user.created_at, có reviewer/ngày/lý do. Kênh duyệt sửa tên/bio [API-37](../api/creator-applications.md#api-37)/không đổi quyền. users.role nguồn quyền/creatorStatus suy ra hồ sơ/quyền request kế tiếp.
 
-BR-002 và DEC-002/007/018 đã chốt. Schema suy trạng thái từ hồ sơ mới nhất và lưu riêng kênh hiện tại trên hồ sơ đã duyệt. Field/body/response và giao dịch cạnh tranh còn DEC-005/017/022. [Schema](../architecture/data-model.md#target-model), TC-18.
+BR-002 và DEC-002/005/007/018 đã chốt. Hợp đồng dùng ngày nộp của hồ sơ, lý do khi từ chối, lịch sử phân trang và thông tin kênh hiện tại riêng. Giao dịch cạnh tranh còn DEC-022; lỗi ngoài phần đã chốt còn DEC-017. [API Creator](../api/creator-applications.md), [mô hình dữ liệu](../architecture/data-model.md#target-model), TC-18.

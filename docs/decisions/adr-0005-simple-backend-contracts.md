@@ -21,3 +21,5 @@ Lượt nghe dựa trên client/cooldown, chưa chống gian lận; Guest chuy�
 DEC-003/005/014/017/022 còn chi tiết; DEC-015/016/020 không đóng. Chưa tạo tài khoản email/mua domain/cài công cụ/migration/ứng dụng. [Kế hoạch](../plans/2026-11-17-simple-backend-decisions.md), [hiện trạng](../project/status.md#simple-sync-2026-11-17).
 
 [ADR-0006](adr-0006-bootstrap-and-account-schema.md) bổ sung các quyết định ngày 18/11/2026 về cấu hình local, schema ba bảng tài khoản và giao dịch auth.
+
+[ADR-0008](adr-0008-registration-otp.md) bổ sung xác nhận ngày 21/11/2026 và cập nhật body API-30/31.

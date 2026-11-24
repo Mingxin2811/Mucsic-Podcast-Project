@@ -186,7 +186,7 @@ Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/
 
 ### Tác động dữ liệu và giới hạn
 
-CONFIRMED: chỉ chủ; không đọc playlist đã xóa. Track gỡ/chủ khóa bị loại, vẫn giữ liên kết; đọc thứ tự liên tục từ 1. Không thay đổi liên kết chỉ vì lọc hiển thị. API-38 reorder ID hiển thị/ẩn cuối-hiện lại cuối đã chốt; response/schema còn DEC-005/017/022.
+CONFIRMED: chỉ chủ; không đọc playlist đã xóa. Track gỡ/chủ khóa bị loại, vẫn giữ liên kết; đọc thứ tự liên tục từ 1. Không thay đổi liên kết chỉ vì lọc hiển thị. [API-38](#api-38) nhận và trả thứ tự ID hiển thị; wire của API-17 còn DEC-017 và thứ tự khóa còn DEC-022.
 
 Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
 
@@ -299,59 +299,11 @@ Kiểm thử dự kiến: [TC-12](../testing/acceptance.md#tc-12), [TC-14](../te
 
 `POST /api/playlists/:id/tracks`
 
-- Đặc tả: lựa chọn nghiệp vụ `CONFIRMED`, wire còn thiếu `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
-- Mục tiêu và UC: [UC07](../requirements/use-cases.md#uc07).
-- Quyền đang được mô tả: `Auth(cookie JWT + phiên DB)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
-- Quy tắc: [BR-007](../requirements/business-rules.md#br-007), [BR-008](../requirements/business-rules.md#br-008). Dữ liệu: [playlists](../architecture/data-model.md#playlists), [playlist_tracks](../architecture/data-model.md#playlist-tracks), [tracks](../architecture/data-model.md#tracks).
-- Quyết định liên quan: [DEC-017](../decisions/open-decisions.md#dec-017), [DEC-019](../decisions/open-decisions.md#dec-019), [DEC-022](../decisions/open-decisions.md#dec-022).
+Đặc tả `CONFIRMED` trong phạm vi ghi dưới. Triển khai `NOT_IMPLEMENTED`, kiểm chứng `NOT_RUN`. Chỉ chủ playlist chưa xóa, kể cả Admin chỉ sửa playlist của mình. Cookie, CSRF và Origin theo [quy ước API](README.md).
 
-### Đầu vào đang được mô tả
+Path `:id` là ID playlist. Body nhận `{trackId}` với `trackId` là số nguyên bắt buộc. Thêm lần đầu trả `201` và đưa track vào cuối danh sách. Thêm lại track đang hiển thị trả `200` với vị trí hiện tại và giữ nguyên liên kết. Cả hai trả `data: {playlistId, trackId, sortOrder}`. Track không khả dụng, gồm track bị ẩn hoặc đã gỡ, trả `404 NOT_FOUND`.
 
-Khối sau ghi kiểu, điều kiện hoặc trường của request; phần chú thích kiểu không phải payload có thể gửi nguyên văn.
-
-```text
-Path param: id (int, playlist_id)
-Body JSON:
-{
-  "trackId": "int (bắt buộc)"
-}
-```
-
-### Đầu ra minh họa
-
-Mã thành công: 201 Created.
-
-Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. Envelope và mã thành công theo quy ước đã chốt; required/null và lỗi chi tiết còn DEC-017.
-
-```json
-{
-  "success": true,
-  "message": "Đã thêm bài hát vào playlist",
-  "data": {
-    "playlistId": 1,
-    "trackId": 3,
-    "sortOrder": 5
-  }
-}
-```
-
-### Lỗi đang được mô tả
-
-- 400 Bad Request: Bài hát này đã có sẵn trong playlist (Trùng khóa chính phức hợp)
-- 401 Unauthorized: Chưa đăng nhập
-- 403 Forbidden: Không có quyền sửa playlist của người khác
-- 404 Not Found: Bài hát hoặc Playlist không tồn tại
-- 500 Internal Server Error: Lỗi ghi CSDL
-
-Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/DB dịch vụ và mọi nhánh mới. Envelope lỗi đã chọn ở README; code/chi tiết từng lỗi còn DEC-017.
-
-### Tác động dữ liệu và giới hạn
-
-CONFIRMED: chỉ chủ playlist chưa xóa; liên kết không trùng; thêm cuối từ 1 và khóa playlist trong transaction. Track gỡ/ẩn không hiện/không tính count. UNIQUE thứ tự kiểm lúc commit đã chọn; thêm track ẩn/lặp và giao dịch chi tiết còn DEC-017/022, MAX+1 đơn lẻ chưa đủ.
-
-Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
-
-Kiểm thử dự kiến: [TC-13](../testing/acceptance.md#tc-13), [TC-14](../testing/acceptance.md#tc-14). Chỉ phần đã xác nhận là ràng buộc; hoàn tất các ô wire còn thiếu trước triển khai endpoint cuối cùng.
+Thao tác khóa playlist trong transaction. Thứ tự hiển thị bắt đầu từ 1; track ẩn không xuất hiện và không tính vào số track. Thứ tự khóa giữa playlist và trạng thái track/chủ thuộc DEC-022; lỗi HTTP ngoài phần đã chốt thuộc DEC-017. [DEC-005](../decisions/open-decisions.md#dec-005), [TC-13](../testing/acceptance.md#tc-13)/[TC-14](../testing/acceptance.md#tc-14).
 
 <a id="api-21"></a>
 
@@ -359,42 +311,11 @@ Kiểm thử dự kiến: [TC-13](../testing/acceptance.md#tc-13), [TC-14](../te
 
 `DELETE /api/playlists/:id/tracks/:trackId`
 
-- Đặc tả: lựa chọn nghiệp vụ `CONFIRMED`, wire còn thiếu `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
-- Mục tiêu và UC: [UC07](../requirements/use-cases.md#uc07).
-- Quyền đang được mô tả: `Auth(cookie JWT + phiên DB)`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
-- Quy tắc: [BR-007](../requirements/business-rules.md#br-007), [BR-008](../requirements/business-rules.md#br-008). Dữ liệu: [playlists](../architecture/data-model.md#playlists), [playlist_tracks](../architecture/data-model.md#playlist-tracks).
-- Quyết định liên quan: [DEC-017](../decisions/open-decisions.md#dec-017), [DEC-019](../decisions/open-decisions.md#dec-019).
+Đặc tả `CONFIRMED` trong phạm vi ghi dưới. Triển khai `NOT_IMPLEMENTED`, kiểm chứng `NOT_RUN`. Chỉ chủ playlist chưa xóa, kể cả Admin chỉ sửa playlist của mình. Cookie, CSRF và Origin theo [quy ước API](README.md).
 
-### Đầu vào đang được mô tả
+Path `:id` và `:trackId` lần lượt là ID playlist và ID track. Sau khi kiểm tra playlist tồn tại, chưa xóa và thuộc người gọi, trả `204` không body khi gỡ thành công hoặc khi liên kết đã vắng. Khi liên kết tồn tại, xóa liên kết và đánh lại thứ tự trong transaction khóa playlist. Track được giữ lại trong kho.
 
-Khối sau ghi kiểu, điều kiện hoặc trường của request; phần chú thích kiểu không phải payload có thể gửi nguyên văn.
-
-```text
-Path params:
-- id: int (playlist_id)
-- trackId: int (track_id)
-```
-
-### Đầu ra minh họa
-
-**CONFIRMED: HTTP 204 No Content, không body và không JSON envelope.** Chi tiết cookie/headers nếu có theo DEC-017.
-
-### Lỗi đang được mô tả
-
-- 401 Unauthorized: Chưa đăng nhập
-- 403 Forbidden: Không có quyền can thiệp playlist này
-- 404 Not Found: Không tìm thấy bài hát trong playlist
-- 500 Internal Server Error: Lỗi xóa dữ liệu
-
-Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/DB dịch vụ và mọi nhánh mới. Envelope lỗi đã chọn ở README; code/chi tiết từng lỗi còn DEC-017.
-
-### Tác động dữ liệu và giới hạn
-
-CONFIRMED: chỉ chủ playlist chưa xóa; xóa liên kết, không xóa track, đánh lại thứ tự trong transaction khóa playlist. Thành công 204 không body; ẩn cuối/hiện lại cuối theo API-38; lỗi gỡ lặp còn DEC-017, schema/lock order DEC-022.
-
-Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
-
-Kiểm thử dự kiến: [TC-13](../testing/acceptance.md#tc-13), [TC-14](../testing/acceptance.md#tc-14). Chỉ phần đã xác nhận là ràng buộc; hoàn tất các ô wire còn thiếu trước triển khai endpoint cuối cùng.
+Lỗi quyền và tài nguyên ngoài phần đã chốt thuộc DEC-017; thứ tự khóa thuộc DEC-022. [DEC-005](../decisions/open-decisions.md#dec-005), [TC-13](../testing/acceptance.md#tc-13)/[TC-14](../testing/acceptance.md#tc-14).
 
 <a id="api-38"></a>
 
@@ -402,8 +323,8 @@ Kiểm thử dự kiến: [TC-13](../testing/acceptance.md#tc-13), [TC-14](../te
 
 `PATCH /api/playlists/:id/order`
 
-CONFIRMED theo [DEC-019](../decisions/open-decisions.md#dec-019)/[xác nhận mới](../decisions/open-decisions.md#evidence-simple-2026-11-17), UC07/BR-007/008; NOT_IMPLEMENTED/NOT_RUN. Chỉ chủ playlist chưa xóa, kể cả Admin chỉ của mình; cookie/CSRF/Origin theo [quy ước](README.md).
+Đặc tả `CONFIRMED` theo [DEC-019](../decisions/open-decisions.md#dec-019) và [DEC-005](../decisions/open-decisions.md#dec-005). Triển khai `NOT_IMPLEMENTED`, kiểm chứng `NOT_RUN`. Chỉ chủ playlist chưa xóa, kể cả Admin chỉ sửa playlist của mình. Cookie, CSRF và Origin theo [quy ước API](README.md).
 
-Body CONFIRMED `{trackIds:[...]}` là toàn bộ ID **đang hiển thị**, thay mọi liên kết trước đây. Backend khóa playlist/kiểm đúng tập hiển thị; giữ liên kết track ẩn ở cuối/hiện lại cuối, đọc thứ tự liên tục/từ 1, không đếm track ẩn. Tập track thay đổi trả 409 để tải lại. Hai reorder hợp lệ tuần tự, lần hoàn tất sau quyết định cuối; UNIQUE thứ tự kiểm lúc commit.
+Body nhận `{trackIds}`, là mảng số nguyên dương không trùng, chứa toàn bộ ID đang hiển thị. Mảng sai kiểu, phần tử sai kiểu hoặc trùng ID trả `400 VALIDATION_ERROR`. Backend khóa playlist và so tập ID với tập đang hiển thị. Tập khác trả `409 CONFLICT` để client tải lại. Mảng rỗng thành công khi playlist không có track hiển thị.
 
-Success 200 theo PATCH. Response đầy đủ, validation array-ID trùng-ID sai và lỗi khác còn DEC-005/017. DDL đã có UNIQUE deferred. Thứ tự khóa với trạng thái track-chủ còn DEC-022. [Schema](../architecture/data-model.md#target-model), [TC-13](../testing/acceptance.md#tc-13)/[TC-14](../testing/acceptance.md#tc-14).
+Trả `200` với `data: {playlistId, trackIds}`, trong đó `trackIds` theo thứ tự hiển thị đã lưu. Liên kết ẩn giữ ở cuối và hiện lại ở cuối; các track hiển thị được đọc theo thứ tự liên tục từ 1. Hai lượt reorder hợp lệ chạy tuần tự, lần hoàn tất sau quyết định thứ tự cuối. DDL đã có UNIQUE kiểm tại commit. Thứ tự khóa với trạng thái track/chủ còn DEC-022. [Schema](../architecture/data-model.md#target-model), [TC-13](../testing/acceptance.md#tc-13)/[TC-14](../testing/acceptance.md#tc-14).

@@ -25,6 +25,6 @@
 - Phân biệt nội dung đã viết, chức năng đã triển khai và hành vi đã kiểm chứng. Chỉ ghi `PASS` khi có lần chạy, môi trường và bằng chứng.
 - Khi thay đổi hành vi hoặc schema đã được xác nhận, cập nhật tài liệu sở hữu nội dung và ma trận truy xuất trong cùng công việc.
 - Với công việc nhiều bước, dùng [quy ước kế hoạch](docs/plans/README.md); ghi lại phát hiện, tiến độ và kết quả thực tế.
-- Kiểm tra các lệnh tồn tại trước khi chạy. Repo chưa có lệnh test/build ứng dụng được xác nhận; xem [thiết lập local](docs/development/local-setup.md).
+- Kiểm tra các lệnh tồn tại trước khi chạy. Backend có `npm test` cho bootstrap HTTP và schema với DB thử riêng. Xem [thiết lập local](docs/development/local-setup.md) để tra lệnh hiện hành và điều kiện chạy.
 - SQL khởi tạo và seed có thao tác xóa dữ liệu. Không chạy chúng chỉ để đọc tài liệu hoặc kiểm tra cấu trúc.
 - Không ghi bí mật thật vào tài liệu hoặc bằng chứng; dùng dữ liệu thử phù hợp khi cần kiểm chứng.

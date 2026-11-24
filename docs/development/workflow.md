@@ -29,10 +29,10 @@ Nhóm từng mô tả feature branch, review chéo và không push trực tiếp
 
 ## Ba tình huống tra cứu
 
-**Giao việc auth:** UC01/UC02 → BR-003 → API auth → DEC-003/005/006/014/017/022 → TC-01–TC-05. [Xác nhận 18/11](../decisions/open-decisions.md#evidence-bootstrap-auth-2026-11-18) bổ sung cấu hình local, schema tài khoản, thứ tự khóa và vòng đời gửi OTP. Xem wire/status, IP limit, `reserved` và đăng ký lại trong [khoảng trống API](../api/README.md#contract-gaps).
+**Giao việc auth** đi từ UC01/UC02 → BR-003 → API auth → DEC-003/005/006/014/017/022 → TC-01–TC-05. [DEC-014](../decisions/open-decisions.md#dec-014) chốt local, hạn mức cấp mã theo email và định dạng hash. Cột `request_ip` cần migration cho phép `NULL` theo DEC-022. [Khoảng trống API](../api/README.md#contract-gaps).
 
 **Thay đổi database:** data-model → DEC-003/006/007/010/013/014/019/022 → TC-19 và UC liên quan. [Migration khởi tạo](../architecture/data-model.md#target-model) tạo chín bảng trên PostgreSQL 18 trống. Đối chiếu DDL/seed reset cũ và dùng [lệnh migration đã kiểm chứng](local-setup.md).
 
-**Tra endpoint:** tìm API-ID → danh mục API hiện hành → DEC-004/005/009/017. Bốn route tranh chấp cũ đã được chọn; update dùng PATCH. Không thêm alias; API-30–39 đã chốt method/path, API-25 application ID; response/field bổ sung chưa đủ nằm trong gaps. Chỉ chuẩn hóa phần đã được xác nhận, giữ nullable/error/body chưa chọn là DRAFT.
+**Tra endpoint:** tìm API-ID → danh mục API hiện hành → DEC-004/005/009/017. Bốn route tranh chấp cũ đã được chọn; update dùng PATCH. API-30–39 đã có hợp đồng theo DEC-003/005, API-25 dùng application ID. Các mục ngoài phạm vi đã xác nhận xem ở [khoảng trống API](../api/README.md#contract-gaps).
 
 Thứ tự triển khai đã chấp nhận tại [ADR-0005](../decisions/adr-0005-simple-backend-contracts.md): bootstrap/migration → auth/OTP → Creator → upload/nghe → search → playlist, kiểm thử từng luồng. Reorder hiện chỉ ID hiển thị/ẩn cuối; không tái áp dụng quy tắc mọi ID liên kết từ lịch sử DEC-019.

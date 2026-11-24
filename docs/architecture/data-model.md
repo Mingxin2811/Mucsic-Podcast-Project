@@ -165,7 +165,7 @@ Mô hình đầy đủ giữ năm bảng nghiệp vụ và bổ sung bốn bản
 | Thành phần | CONFIRMED | Chi tiết còn OPEN |
 | --- | --- | --- |
 | users | Email trim/lowercase UNIQUE, email_verified_at NULL lúc đăng ký, password scrypt và users.role là nguồn quyền. [Schema khởi tạo](#initial-auth-schema). | Chi tiết wire DEC-017. |
-| otp_challenges | Mục đích đăng ký/reset, HMAC với secret riêng, thời hạn/số lần sai và trạng thái gửi. [Schema khởi tạo](#initial-auth-schema). | IP limit, xử lý `reserved` bị gián đoạn và wire DEC-003/005/017. |
+| otp_challenges | Mục đích đăng ký/reset, HMAC với secret riêng, thời hạn/số lần sai và trạng thái gửi. Đếm lượt cấp theo user và mục đích. [Schema khởi tạo](#initial-auth-schema). | [Thay đổi local dự kiến](#reset-request-ip-storage) cho phép `request_ip` nhận `NULL`. |
 | auth_sessions | UUID/user/thời hạn/thu hồi/CSRF, 24 giờ tuyệt đối, nhiều phiên, bền qua restart. [Schema khởi tạo](#initial-auth-schema). | Wire và Origin DEC-017. |
 | creator_applications | Hồ sơ, dữ liệu kênh hiện tại, một pending và một approved/user | Thứ tự khóa khi review và thao tác đồng thời DEC-022. |
 | genres, tracks | Genre có tên và slug UNIQUE. Track có FK thể loại/chủ, thời lượng dương, lượt nghe không âm và `search_text` bắt buộc. | `pg_trgm` chỉ xem xét sau phép đo DEC-012. Recovery media còn DEC-022. |
@@ -189,7 +189,13 @@ Ba bảng tài khoản được xác nhận ngày 18/11/2026 và được giữ 
 | `otp_challenges` | `id` UUID, `user_id` integer, `purpose` text, `code_digest` bytea, `failed_attempts` smallint mặc định 0, `request_ip` inet, `delivery_status` text, `created_at`, `expires_at`. `consumed_at` và `invalidated_at` nullable. | PK `id`, FK `user_id` → `users.id` với `ON DELETE RESTRICT`. `CHECK` mục đích xác minh email hoặc reset mật khẩu, digest dài 32 byte, lần sai từ 0 đến 3, tối đa một mốc kết thúc được ghi. Trạng thái gửi thuộc `reserved`, `accepted`, `failed`, `unknown`. Unique index trên `(user_id, purpose)` khi cả hai mốc kết thúc là `NULL`. App đóng mã cũ hoặc mã hết hạn trong transaction trước khi cấp mã thay thế. Index `(user_id, created_at)` và `(request_ip, created_at)` phục vụ đếm lượt gửi. |
 | `auth_sessions` | `id` UUID, `user_id` integer, `csrf_token` bytea ngẫu nhiên 32 byte, `created_at`, `expires_at`. `revoked_at` nullable. | PK `id`, FK `user_id` → `users.id` với `ON DELETE RESTRICT`. Index `user_id` dùng để thu hồi toàn bộ phiên. Tính hạn tuyệt đối 24 giờ cho `expires_at` và JWT `exp` từ cùng mốc tạo phiên. CSRF token ổn định trong phiên. |
 
-Migration biểu diễn mục đích OTP bằng `verify_email` và `reset_password`. Unique index OTP dựa trên hai mốc kết thúc. Kiểm tra hết hạn thuộc giao dịch auth. Các lượt gửi đã ghi có `user_id` bắt buộc. Nếu DEC-003 chọn đếm cả yêu cầu reset cho email không tồn tại, cách lưu lượt đó cần quyết định riêng.
+Migration biểu diễn mục đích OTP bằng `verify_email` và `reset_password`. Unique index OTP dựa trên hai mốc kết thúc. Kiểm tra hết hạn thuộc giao dịch auth. Các lượt gửi đã ghi có `user_id` bắt buộc. Hạn mức OTP đăng ký dùng các hàng `verify_email` hiện có. Hạn mức cấp mã reset theo email dùng các hàng `reset_password`. [Vòng đời OTP](security-and-media.md#otp-delivery).
+
+<a id="reset-request-ip-storage"></a>
+
+### Cột IP trong bản local
+
+Migration khởi tạo chín bảng khai báo `request_ip inet NOT NULL` và index `(request_ip, created_at)`. DEC-014/022 xác nhận migration tiến bỏ ràng buộc `NOT NULL` để bản local lưu `NULL`. Thay đổi còn chờ triển khai. Bảng riêng đếm mọi yêu cầu reset theo IP đã chọn ở mốc 21/11 nay thuộc hướng mở rộng tương lai. [Xác nhận local](../decisions/open-decisions.md#evidence-local-runtime-2026-11-22).
 
 ### Schema sáu bảng nghiệp vụ bổ sung
 

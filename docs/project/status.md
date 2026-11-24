@@ -1,6 +1,6 @@
 # Hiện trạng và bằng chứng
 
-Các kết quả dưới mục lịch sử áp dụng cho revision và ngày ghi nhận, không phải kết quả của bản docs mới. Xem [phương án đơn giản mới nhất](#simple-sync-2026-11-17), [bổ sung media](#media-sync-2026-11-17), [đồng bộ đầu 17/11](#sync-2026-11-17) và [sổ DEC](../decisions/open-decisions.md#evidence-2026-11-17) cho xác nhận hiện hành.
+Các kết quả lịch sử áp dụng cho revision và ngày ghi nhận. Xem [migration chín bảng đã chạy](#single-database-migration-2026-11-20), [hợp đồng API](#api-contract-decisions-2026-11-22) và [phạm vi local hiện hành](#local-runtime-decisions-2026-11-22).
 
 ## Kiểm kê và kiểm tra lịch sử 11/11/2026
 
@@ -123,7 +123,7 @@ Các con số kiểm tra trên không phải kết quả API/SQL/seek/duration/c
 
 ## Phương án đơn giản 17/11/2026 — sau DOCSYNC-20261117-02
 
-Nguồn [xác nhận mới](../decisions/open-decisions.md#evidence-simple-2026-11-17), [ADR-0005](../decisions/adr-0005-simple-backend-contracts.md), [kế hoạch](../plans/2026-11-17-simple-backend-decisions.md). Hiện 39 API-ID/14 DEC ACCEPTED/8 OPEN/5 ADR. DEC-010/012/019/021 ACCEPTED; DEC-003/005/014/017/022 còn chi tiết, DEC-015/016/020 giữ OPEN. 12 UC/9 BR/5 NFR/21 TC giữ mã, mọi TC NOT_RUN.
+Nguồn [xác nhận](../decisions/open-decisions.md#evidence-simple-2026-11-17), [ADR-0005](../decisions/adr-0005-simple-backend-contracts.md), [kế hoạch](../plans/2026-11-17-simple-backend-decisions.md). Tại mốc này có 39 API-ID/14 DEC ACCEPTED/8 OPEN/5 ADR. DEC-010/012/019/021 ACCEPTED; DEC-003/005/014/017/022 còn chi tiết, DEC-015/016/020 giữ OPEN. 12 UC/9 BR/5 NFR/21 TC giữ mã, mọi TC NOT_RUN.
 
 Công cụ Zod/Multer/jose-HS256/scrypt/pg.Pool/node-pg-migrate/node:test-fetch/ESLint, Resend HTTPS/HMAC OTP/user chưa verified, cookie soundwave_session/CSRF-Origin/password 12–128, bốn bảng đích/search_text/cooldown/text limits được ghi CONFIRMED. Reorder thay mọi ID liên kết bằng ID hiển thị, ẩn cuối/hiện lại cuối/tập đổi 409/UNIQUE kiểm commit. Các response chưa được chọn không được tự hoàn thiện.
 
@@ -199,3 +199,27 @@ Run ID **SCHEMA-20261120-01**, Asia/Saigon. Windows/PowerShell, Node.js 24.14.1,
 | `node ./node_modules/node-pg-migrate/bin/node-pg-migrate.js down --quiet` và `npm run migrate` | `PASS` | Sau `down`, `psql` đếm 0 bảng nghiệp vụ và 0 dòng lịch sử. Áp lại thành công. |
 
 Phần DDL khởi tạo của TC-19 đã chạy. Toàn bộ TC-19 còn seed/demo. Chưa kiểm chứng seed cũ, migration giữ dữ liệu cho DB đã áp schema ba bảng, baseline chính xác 18.7, API nghiệp vụ hoặc recovery media. [Kế hoạch](../plans/2026-11-20-consolidate-database-migration.md).
+
+<a id="registration-otp-decisions-2026-11-21"></a>
+
+## Xác nhận OTP đăng ký ngày 21/11/2026
+
+Ở mốc này, người dùng đã chốt body và status chính của API-01/30/31, hạn mức theo IP, timeout, xử lý `reserved`, đăng ký lại và thời gian giữ lịch sử OTP đăng ký. Các lựa chọn này dùng schema chín bảng hiện có. API nghiệp vụ vẫn `NOT_IMPLEMENTED`, TC-01/02 vẫn `NOT_RUN`. [Xác nhận](../decisions/open-decisions.md#evidence-registration-otp-2026-11-21), [ADR-0008](../decisions/adr-0008-registration-otp.md), [kế hoạch và kiểm tra](../plans/2026-11-21-registration-otp-decisions.md).
+
+<a id="password-reset-otp-decisions-2026-11-21"></a>
+
+## Xác nhận OTP khôi phục mật khẩu ngày 21/11/2026
+
+DEC-003 đã `ACCEPTED`. API-32/33 có body và status chính, hạn mức reset riêng, quy tắc phản hồi chung và vòng đời mã. Phần OTP đăng ký được bổ sung phản hồi sai mật khẩu, `reserved` và lịch dọn. Bảng PostgreSQL đếm yêu cầu reset theo IP ở mức thiết kế; DDL còn DEC-022. API nghiệp vụ có trạng thái `NOT_IMPLEMENTED`, TC-01/02/04 giữ `NOT_RUN`. [Xác nhận](../decisions/open-decisions.md#evidence-password-reset-otp-2026-11-21), [ADR-0009](../decisions/adr-0009-password-reset-otp.md), [kế hoạch và kiểm tra](../plans/2026-11-21-password-reset-otp-decisions.md).
+
+<a id="api-contract-decisions-2026-11-22"></a>
+
+## Xác nhận hợp đồng API ngày 22/11/2026
+
+DEC-005 đã `ACCEPTED`. Tại mốc này đã đồng bộ JSON, validation và status cho API-01/20/21/24/25/30–39; danh mục có 39 API-ID, 16 DEC `ACCEPTED`, 6 DEC `OPEN` và 9 ADR. Các API nghiệp vụ có trạng thái `NOT_IMPLEMENTED`; các kịch bản nghiệm thu đầy đủ có trạng thái `NOT_RUN`. [Xác nhận](../decisions/open-decisions.md#evidence-api-contracts-2026-11-22), [kế hoạch](../plans/2026-11-22-api-contract-decisions.md).
+
+<a id="local-runtime-decisions-2026-11-22"></a>
+
+## Xác nhận phạm vi local ngày 22/11/2026
+
+DEC-014 đã `ACCEPTED`. Phạm vi local trên Windows/PowerShell giữ OTP theo email và demo qua Resend. Online, backup/restore và hạn mức OTP theo IP thuộc hướng mở rộng. Đã chốt định dạng hash, thao tác đổi khóa JWT local, ký cookie Guest và cấu hình media. Migration khởi tạo vẫn có `request_ip NOT NULL`; migration tiến cho phép `NULL` còn `NOT_IMPLEMENTED`. Phiên bản media là lựa chọn cho mốc upload. Các API nghiệp vụ `NOT_IMPLEMENTED`, các TC đầy đủ `NOT_RUN`. Hiện có 39 API-ID, 17 DEC `ACCEPTED`, 5 DEC `OPEN` và 10 ADR. [Xác nhận](../decisions/open-decisions.md#evidence-local-runtime-2026-11-22), [kế hoạch và kiểm tra](../plans/2026-11-22-local-runtime-decisions.md).

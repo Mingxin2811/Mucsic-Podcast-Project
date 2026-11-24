@@ -20,3 +20,13 @@ Quy tắc nhận việc ở [workflow](../development/workflow.md), hiện trạ
 Ngày 18/11: [đồng bộ quyết định bootstrap/schema tài khoản](2026-11-18-backend-bootstrap-decisions.md) và [triển khai bootstrap/migration đầu tiên](2026-11-18-implement-backend-bootstrap.md).
 
 Ngày 20/11: [gom schema nghiệp vụ vào một migration](2026-11-20-consolidate-database-migration.md) theo ADR-0007.
+
+Ngày 21/11: [đồng bộ quyết định OTP đăng ký](2026-11-21-registration-otp-decisions.md) theo ADR-0008.
+
+Ngày 21/11: [đồng bộ hiện trạng schema và kiểm thử](2026-11-21-align-runtime-status-docs.md).
+
+Ngày 21/11: [đồng bộ quyết định OTP khôi phục mật khẩu](2026-11-21-password-reset-otp-decisions.md) theo ADR-0009.
+
+Ngày 22/11, [đồng bộ hợp đồng Auth/CSRF, Creator và playlist](2026-11-22-api-contract-decisions.md) theo DEC-005.
+
+Cùng ngày, [đồng bộ phạm vi local và toolchain](2026-11-22-local-runtime-decisions.md) theo DEC-014 và ADR-0010.

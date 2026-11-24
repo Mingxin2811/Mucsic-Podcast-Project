@@ -4,11 +4,11 @@ Lựa chọn kiến trúc ngày 17/11/2026 đã CONFIRMED theo [DEC](../decision
 
 ## Email, đăng ký và mật khẩu
 
-[DEC-003/014/017](../decisions/open-decisions.md#evidence-simple-2026-11-17): Resend HTTPS/fetch backend, cần tài khoản/API key/domain gửi xác minh; chưa thiết lập/gửi/mua domain. Listener mới email_verified_at NULL/chưa login. OTP sáu số/năm phút/một lần/ba sai; resend 60 giây hủy cũ; tối đa 5 lần gửi/email/giờ, thêm IP limit/ngưỡng chưa chọn.
+[DEC-003/014/017](../decisions/open-decisions.md#evidence-password-reset-otp-2026-11-21): Resend HTTPS/fetch backend, cần tài khoản/API key/domain gửi xác minh. Listener mới có `email_verified_at` là `NULL` và chưa thể đăng nhập. OTP đăng ký và reset có sáu chữ số, hạn năm phút, dùng một lần và vô hiệu hóa ở lần sai thứ ba.
 
 PostgreSQL lưu digest HMAC-SHA256 với secret riêng, số lần sai, thời hạn và các mốc dùng/vô hiệu hóa. Lỗi gửi giữ user đăng ký ở trạng thái chưa xác minh, cho gửi lại và không tạo user trùng. Reset dành cho user đã xác minh và chưa khóa. Yêu cầu reset phản hồi chung để bảo vệ thông tin tài khoản. Xác minh email và reset không tự đăng nhập.
 
-Password 12–128 ký tự, cho khoảng trắng/không trim/không ép ký tự đặc biệt. Dùng scrypt bất đồng bộ Node với `N=32768`, `r=8`, `p=3`, `maxmem=64 MiB`, salt ngẫu nhiên 16 byte riêng cho mỗi mật khẩu và digest 32 byte. `password_hash` lưu một chuỗi có phiên bản gồm thuật toán, `N/r/p`, salt và digest. Cách mã hóa tuần tự của chuỗi thuộc DEC-014. Dữ liệu demo và kiểm chứng đăng nhập thuộc DEC-020. Không ghi password/hash/OTP/JWT thật vào log bàn giao.
+Password 12–128 ký tự, cho khoảng trắng và giữ nguyên khi băm. Dùng scrypt bất đồng bộ Node với `N=32768`, `r=8`, `p=3`, `maxmem=64 MiB`, salt ngẫu nhiên 16 byte riêng cho mỗi mật khẩu và digest 32 byte. `password_hash` lưu `scrypt$v1$N=32768,r=8,p=3$<salt>$<digest>`, với salt và digest mã hóa base64url. Seed demo thuộc DEC-020. Che password, hash, OTP và JWT trong log và bằng chứng bàn giao. [DEC-014](../decisions/open-decisions.md#dec-014).
 
 <a id="otp-delivery"></a>
 
@@ -18,13 +18,19 @@ Password 12–128 ký tự, cho khoảng trắng/không trim/không ép ký tự
 2. Gọi Resend sau commit. Phản hồi thành công ghi `accepted`. Lỗi xác định ghi `failed` và vô hiệu hóa mã nếu còn hiệu lực. Timeout chưa rõ kết quả ghi `unknown`. Mã `unknown` còn đủ điều kiện xác minh đến khi hết hạn hoặc bị thay, theo các điều kiện dùng một lần và số lần sai.
 3. Cập nhật kết quả gửi cho đúng mã. Kết quả đến muộn vẫn giữ nguyên việc mã đã dùng hoặc đã bị vô hiệu hóa.
 
-Các quyết định còn mở gồm timeout cụ thể, xử lý `reserved` khi process bị gián đoạn, điều kiện verify trong trạng thái `reserved`, hạn mức/IP và đăng ký lại. Cần làm rõ tính nguyên tử theo IP khi nhiều tài khoản dùng chung IP. Wire và phản hồi khi Resend lỗi thuộc DEC-003/005/017. [Xác nhận 18/11](../decisions/open-decisions.md#evidence-bootstrap-auth-2026-11-18), [schema khởi tạo](data-model.md#initial-auth-schema).
+**OTP đăng ký.** Các lượt `verify_email` tính tối đa năm lượt cấp mã đã ghi/email/giờ, cách nhau ít nhất 60 giây. API-01 và API-31 dùng chung bộ đếm. Kiểm và ghi lượt của cùng tài khoản trong transaction.
+
+**OTP reset.** Tính tối đa năm lượt cấp mã đã ghi/email/giờ, cách nhau ít nhất 60 giây, dựa vào hàng `reset_password` và tách khỏi đăng ký. Chỉ cấp mã cho user đã xác minh và chưa khóa. Với email hợp lệ về cú pháp, API-32 luôn trả cùng `202`, cùng nội dung và thời gian phản hồi tương đương giữa các trạng thái tài khoản, hạn mức email và kết quả Resend. [API-32](../api/auth.md#api-32).
+
+**Chờ gửi và dọn dữ liệu.** Cuộc gọi Resend cho cả hai mục đích có timeout năm giây. Trong 15 giây đầu, yêu cầu xác minh hoặc reset với mã còn hiệu lực ở trạng thái `reserved` được yêu cầu thử lại và giữ nguyên số lần sai. Từ mốc 15 giây, có thể chuyển sang `unknown` trong transaction rồi kiểm mã với hạn ban đầu. Job mỗi giờ dọn lịch sử OTP đăng ký/reset đã quá bảy ngày. [API-30](../api/auth.md#api-30), [API-33](../api/auth.md#api-33).
+
+Hạn mức theo IP thuộc hướng mở rộng. Bản local dùng migration cho phép `request_ip` nhận `NULL`; wire còn thiếu thuộc DEC-017. [Xác nhận local](../decisions/open-decisions.md#evidence-local-runtime-2026-11-22), [mô hình dữ liệu](data-model.md#reset-request-ip-storage).
 
 ## Phiên JWT đã chọn
 
 [DEC-006](../decisions/open-decisions.md#dec-006), [ADR xác thực](../decisions/adr-0001-authentication-and-sessions.md): JWT đi cùng bảng `auth_sessions` PostgreSQL. JWT có sub (user ID), sid (session ID), iat, exp, iss, aud; không cần email/role. Mỗi login thành công tạo phiên riêng. Token và phiên hết hạn tuyệt đối sau 24 giờ; không gia hạn, chưa có refresh token.
 
-Protected request xác minh chữ ký HS256 và claim, sau đó đọc phiên cùng user, kiểm tra đúng chủ, còn hạn, chưa thu hồi, user hoạt động và đã xác minh email, rồi kiểm tra quyền hiện tại/sở hữu. DB lỗi trả lỗi dịch vụ. JWT dùng `soundwave-api` làm issuer và `soundwave-web` làm audience. Mỗi môi trường có secret JWT ngẫu nhiên 32 byte, riêng với secret OTP. MVP chỉ dùng một khóa JWT tại mỗi thời điểm. Đổi khóa thu hồi các phiên hiện có và yêu cầu đăng nhập lại. Cách phối hợp thay khóa khi triển khai online còn DEC-014. [Biến môi trường](../development/local-setup.md).
+Protected request xác minh chữ ký HS256 và claim, sau đó đọc phiên cùng user, kiểm tra đúng chủ, còn hạn, chưa thu hồi, user hoạt động và đã xác minh email, rồi kiểm tra quyền hiện tại và sở hữu. DB lỗi trả lỗi dịch vụ. JWT dùng issuer `soundwave-api`, audience `soundwave-web` và một khóa 32 byte riêng với secret OTP. Đổi khóa local theo thứ tự dừng backend, thu hồi mọi phiên trong PostgreSQL, thay khóa rồi khởi động lại. User đăng nhập lại. [Biến môi trường](../development/local-setup.md).
 
 | Sự kiện | Hành vi CONFIRMED |
 | --- | --- |
@@ -45,29 +51,32 @@ Thu hồi có hiệu lực với request mới sau khi giao dịch hoàn tất.
 
 - Login, khóa tài khoản và đổi/reset mật khẩu lấy khóa hàng `users` trước khi cập nhật OTP hoặc phiên. Login tính scrypt trước khi lấy khóa. Sau khi lấy khóa, kiểm tra lại hash và trạng thái tài khoản trước khi cấp phiên.
 - Verify và reset OTP lấy khóa `users` rồi tới `otp_challenges`. Lần sai thứ ba tăng bộ đếm và vô hiệu hóa mã cùng lúc. Reset thành công đánh dấu mã đã dùng, đổi hash và thu hồi mọi phiên trong cùng transaction.
+- Xác minh và gửi lại OTP đăng ký kiểm tra mật khẩu của lần đăng ký hiện tại. Giao dịch kiểm lại trạng thái tài khoản và hash hiện tại khi giữ khóa hàng user. Chỉ tính lần sai OTP khi mật khẩu đúng và OTP được đem đối chiếu cho kết quả sai. Xác minh thành công đánh dấu mã đã dùng và ghi `email_verified_at` cùng nhau. Khi đăng ký lại đủ 24 giờ, cập nhật tên/hash và thay mã trong cùng transaction trên user chưa xác minh.
 - Phiên và JWT cùng lấy hạn tuyệt đối 24 giờ từ mốc tạo phiên. CSRF token ngẫu nhiên 32 byte được lưu cùng phiên và giữ ổn định để các tab dùng chung.
 
 [Schema khởi tạo](data-model.md#initial-auth-schema), [DEC-022](../decisions/open-decisions.md#dec-022).
 
 ## Cookie và CSRF
 
-Cookie **soundwave_session**, HttpOnly/SameSite=Lax/path=/; Secure/HTTPS/cùng origin online; HTTP local được tắt riêng Secure, proxy /api cùng origin. Không JWT JSON/Bearer/localStorage như hợp đồng hiện hành. Cookie Domain chưa chốt, không tự tạo Set-Cookie đầy đủ.
+Cookie **soundwave_session** dùng HttpOnly/SameSite=Lax/path=/ và tắt Secure cho HTTP local. JWT chỉ truyền qua cookie phiên. Dùng cùng origin qua `/api` nếu có proxy phát triển. Cookie Domain thuộc DEC-017.
 
-Protected request ghi gửi **X-CSRF-Token** lấy qua [API-39 GET /api/auth/csrf](../api/auth.md#api-39). Token ổn định trong phiên. Auth trước login nhận JSON và kiểm tra Origin. Wire response/headers, cách xử lý phiên đã thu hồi và Origin thiếu/sai/phạm vi public mutation còn DEC-017. Guest vẫn truy cập audio public theo trạng thái track.
+Protected request ghi gửi **X-CSRF-Token** lấy qua [API-39 GET /api/auth/csrf](../api/auth.md#api-39). Token ổn định trong phiên, trả dạng base64url với `Cache-Control: no-store`. Phiên thiếu, hết hạn hoặc đã thu hồi trả `401`. Auth trước login nhận JSON và kiểm tra Origin. Origin thiếu/sai, phạm vi public mutation và lỗi CSRF ở request ghi còn DEC-017. Guest vẫn truy cập audio public theo trạng thái track.
 
-Guest đếm lượt dùng UUID/cookie có chữ ký riêng về mục đích; tên/thuộc tính/thời hạn/chữ ký còn DEC-014/017, không gán nhầm soundwave_session là Guest ID.
+Guest đếm lượt dùng UUID trong cookie ký HMAC-SHA256 bằng khóa riêng với JWT và OTP. Tên, thuộc tính và thời hạn cookie thuộc DEC-017.
+
+<a id="upload-kiem-tra-file-va-duration"></a>
 
 ## Upload, kiểm tra file và duration
 
 Bổ sung CONFIRMED theo [DEC-009](../decisions/open-decisions.md#dec-009), [DEC-011](../decisions/open-decisions.md#dec-011) và [ADR-0004](../decisions/adr-0004-audio-contract-and-file-lifecycle.md). MP3 ≤30 MiB (31.457.280 byte), cover JPG/PNG ≤5 MiB (5.242.880 byte). Chưa cho thay audio; sửa metadata/cover qua API-10.
 
 - Audio kiểm tra dung lượng, đuôi MP3, định dạng/codec MP3 bằng ffprobe; FFmpeg giải mã kiểm tra toàn bộ file. Không chỉ tin tên file hoặc Content-Type client.
-- Ảnh được Sharp đọc/mã hóa lại thành ảnh hợp lệ. Phiên bản, giới hạn tài nguyên ảnh, lựa chọn mã hóa cụ thể và MIME khai báo bất nhất còn DEC-014/DEC-017; không tự đổi yêu cầu JPG/PNG thành định dạng mới.
-- Server sinh tên UUID, không lấy tên client làm đường dẫn. File được lưu dưới vùng do backend quản lý; giới hạn thời gian/số tiến trình ffprobe/FFmpeg bắt buộc, giá trị cụ thể còn DEC-014. Không chạy kiểm tra nặng vô hạn.
+- Sharp đọc và mã hóa lại JPG/PNG. Giới hạn đầu vào 4.096 px mỗi cạnh và 16 triệu pixel; đầu ra tối đa 1.024 px cạnh dài. Cách mã hóa cụ thể và MIME khai báo bất nhất thuộc DEC-017.
+- Server sinh tên UUID và ghi file dưới vùng quản lý của backend. Ở mốc upload, dùng Multer 2.5.0, Sharp 0.35.5, FFmpeg/ffprobe 8.1.3. Tối đa hai tác vụ upload hoặc thay cover đồng thời; timeout ffprobe 5 giây, FFmpeg 120 giây và Sharp 15 giây xử lý ảnh.
 - Duration do ffprobe đọc phải hữu hạn và >0, lưu số nguyên giây **làm tròn lên**: 243,7 → 244. Client không gửi/sửa duration. Làm tròn tăng dưới một giây không bảo đảm sai số phép đọc; phải kiểm chứng CBR/VBR và file lỗi ở TC-08/09.
-- File không hợp lệ trả 400, vượt dung lượng trả 413 và dọn vùng tạm. Mã lỗi validation, timeout và lỗi công cụ cụ thể còn DEC-014/DEC-017; không gọi lỗi server là nội dung file sai.
+- File không hợp lệ trả 400; vượt dung lượng trả 413 và dọn vùng tạm. Mã lỗi validation, timeout và lỗi công cụ cụ thể thuộc DEC-017.
 
-[ADR-0002](../decisions/adr-0002-media-and-online-readiness.md) vẫn chọn filesystem bền vững máy chủ; đường dẫn cấu hình được. Vùng tạm và chính thức phải cùng filesystem. Không chuyển audio sang cloud hoặc public static. Provider/volume/backup chưa được chọn, toàn sản phẩm không bị yêu cầu độc lập Internet.
+[ADR-0010](../decisions/adr-0010-local-runtime-scope.md) chọn filesystem của máy chạy backend. Đường dẫn cấu hình được, vùng tạm và chính thức cùng filesystem. Audio phục vụ qua API kiểm trạng thái; online và backup/restore thuộc hướng mở rộng.
 
 <a id="file-lifecycle"></a>
 
@@ -89,7 +98,7 @@ Dọn rác lúc khởi động và mỗi **30 phút**:
 - Bỏ qua thao tác đang chạy; kiểm tra tham chiếu DB bao gồm track soft delete và các tham chiếu ảnh dùng chung.
 - DB không truy cập được hoặc kết quả commit chưa xác minh thì hoãn dọn. Không tự xóa audio soft delete, ảnh mặc định hoặc file còn tham chiếu.
 
-Ngưỡng tuổi không thay thế kiểm tra thao tác đang chạy. Cơ chế khóa/lease/ghi nhận thao tác, tránh race scan–delete và danh sách dọn bền vững cần thiết kế tại DEC-014/DEC-022; chưa ngầm chọn một phương án.
+Cơ chế khóa/ghi nhận thao tác, tránh race scan–delete và danh sách dọn file cần thiết kế tại DEC-022. Điều kiện tuổi và kiểm tra thao tác đang chạy đều áp dụng.
 
 Thay cover: kiểm tra/lưu ảnh mới bằng tên mới → khóa hàng track trong transaction → cập nhật đường dẫn và COMMIT → sau commit mới đưa ảnh cũ vào danh sách dọn theo điều kiện trên. Rollback giữ ảnh cũ, dọn ảnh mới khi đã xác minh không được commit/tham chiếu. Hai lần thay cover cạnh tranh phải tôn trọng khóa hàng, không xóa ảnh cuối đang dùng. Không đổi tên/ghi đè ảnh đang được dùng để tránh mất ảnh cũ khi lỗi. Chi tiết remove cover/null còn DEC-017; đường dẫn ảnh phục vụ chưa được cấp endpoint mới.
 

@@ -136,37 +136,26 @@ Kiểm thử dự kiến: [TC-05](../testing/acceptance.md#tc-05), [TC-15](../te
 
 `GET /api/admin/creators/pending`
 
-- Đặc tả: lựa chọn nghiệp vụ `CONFIRMED`, wire còn thiếu `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
-- Mục tiêu và UC: [UC12](../requirements/use-cases.md#uc12).
-- Quyền đang được mô tả: `Auth(cookie JWT + phiên DB), RequireRole("admin")`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
-- Quy tắc: [BR-001](../requirements/business-rules.md#br-001), [BR-002](../requirements/business-rules.md#br-002). Dữ liệu: [users](../architecture/data-model.md#users).
-- Quyết định liên quan: [DEC-002](../decisions/open-decisions.md#dec-002), [DEC-007](../decisions/open-decisions.md#dec-007), [DEC-017](../decisions/open-decisions.md#dec-017), [DEC-018](../decisions/open-decisions.md#dec-018).
+Đặc tả `CONFIRMED` trong phạm vi ghi dưới. Triển khai `NOT_IMPLEMENTED`, kiểm chứng `NOT_RUN`. Yêu cầu phiên hợp lệ và quyền Admin. Query `page`, `limit` theo [quy ước API](README.md).
 
-### Đầu vào đang được mô tả
-
-Khối sau ghi kiểu, điều kiện hoặc trường của request; phần chú thích kiểu không phải payload có thể gửi nguyên văn.
-
-```text
-Query params: page: int, limit: int
-```
-
-### Đầu ra minh họa
-
-Mã thành công: 200 OK.
-
-Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. Envelope và mã thành công theo quy ước đã chốt; required/null và lỗi chi tiết còn DEC-017.
+Trả `200` với `data` là mảng hồ sơ `pending` của user hoạt động và `pagination: {page, limit, total}` ở cấp ngoài. Mỗi phần tử có các trường của [hồ sơ Creator](creator-applications.md#creator-application-response) cùng `username` và `email` của người nộp. Xếp hồ sơ cũ nhất trước theo `submittedAt ASC, applicationId ASC`. `submittedAt` là ngày gửi hồ sơ.
 
 ```json
 {
   "success": true,
   "data": [
     {
-      "id": 4,
-      "username": "Vũ. (Hoàng Thái Vũ)",
-      "email": "vu.hoang@indie.vn",
-      "channelName": "Hoàng Tử Indie",
-      "bio": "Nghệ sĩ độc lập mang đến những bản tình ca mộc mạc...",
-      "createdAt": "2026-10-30T10:00:00Z"
+      "applicationId": 14,
+      "username": "minhnguyen",
+      "email": "minh@example.test",
+      "status": "pending",
+      "submittedAt": "2026-11-22T03:00:00Z",
+      "submittedChannelName": "Nhạc buổi sáng",
+      "submittedBio": null,
+      "activityField": "Nhạc acoustic",
+      "reviewedAt": null,
+      "reviewedBy": null,
+      "rejectionReason": null
     }
   ],
   "pagination": {
@@ -177,21 +166,7 @@ Mã thành công: 200 OK.
 }
 ```
 
-### Lỗi đang được mô tả
-
-- 401 Unauthorized: Chưa đăng nhập
-- 403 Forbidden: Yêu cầu quyền Quản trị viên
-- 500 Internal Server Error: Lỗi truy vấn
-
-Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/DB dịch vụ và mọi nhánh mới. Envelope lỗi đã chọn ở README; code/chi tiết từng lỗi còn DEC-017.
-
-### Tác động dữ liệu và giới hạn
-
-CONFIRMED: đọc hồ sơ pending của user hoạt động từ mô hình creator_applications đích. Có ngày gửi/người review/lịch sử ở mô hình; createdAt mẫu cũ là ngày tạo user, không phải submittedAt. Shape response/mapping và thứ tự hàng còn DRAFT, DEC-005/DEC-022.
-
-Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
-
-Kiểm thử dự kiến: [TC-18](../testing/acceptance.md#tc-18). Chỉ phần đã xác nhận là ràng buộc; hoàn tất các ô wire còn thiếu trước triển khai endpoint cuối cùng.
+Mã lỗi xác thực, phân quyền và dịch vụ ngoài phần đã chốt theo DEC-017. [DEC-005](../decisions/open-decisions.md#dec-005), [TC-18](../testing/acceptance.md#tc-18).
 
 <a id="api-25"></a>
 
@@ -199,59 +174,13 @@ Kiểm thử dự kiến: [TC-18](../testing/acceptance.md#tc-18). Chỉ phần 
 
 `PATCH /api/admin/creators/:id/review`
 
-- Đặc tả: lựa chọn nghiệp vụ `CONFIRMED`, wire còn thiếu `DRAFT`; triển khai: `NOT_IMPLEMENTED`; kiểm chứng: `NOT_RUN` tại mốc kiểm kê.
-- Mục tiêu và UC: [UC12](../requirements/use-cases.md#uc12).
-- Quyền đang được mô tả: `Auth(cookie JWT + phiên DB), RequireRole("admin")`. Quy tắc sở hữu/ngoại lệ vẫn phải áp dụng.
-- Quy tắc: [BR-001](../requirements/business-rules.md#br-001), [BR-002](../requirements/business-rules.md#br-002). Dữ liệu: [users](../architecture/data-model.md#users).
-- Quyết định liên quan: [DEC-002](../decisions/open-decisions.md#dec-002), [DEC-005](../decisions/open-decisions.md#dec-005), [DEC-006](../decisions/open-decisions.md#dec-006), [DEC-007](../decisions/open-decisions.md#dec-007), [DEC-017](../decisions/open-decisions.md#dec-017), [DEC-018](../decisions/open-decisions.md#dec-018), [DEC-022](../decisions/open-decisions.md#dec-022).
+Đặc tả `CONFIRMED` trong phạm vi ghi dưới. Triển khai `NOT_IMPLEMENTED`, kiểm chứng `NOT_RUN`. Yêu cầu phiên hợp lệ, quyền Admin, CSRF và Origin.
 
-### Đầu vào đang được mô tả
+Path `:id` là `applicationId`. Body có `decision` là `approve` hoặc `reject`. Với `reject`, `rejectionReason` bắt buộc, là chuỗi 1–500 ký tự sau trim. Với `approve`, request phải bỏ trường `rejectionReason`.
 
-Khối sau ghi kiểu, điều kiện hoặc trường của request; phần chú thích kiểu không phải payload có thể gửi nguyên văn.
+Trả `200` với `data: {application, role}`. `application` là [hồ sơ đã cập nhật](creator-applications.md#creator-application-response) và `role` là role hiện tại của người nộp. Input sai trả `400 VALIDATION_ERROR`; hồ sơ không tồn tại trả `404 NOT_FOUND`; hồ sơ đã được xử lý trả `409 CONFLICT`.
 
-```text
-Path param: id (int, application ID)
-Body JSON:
-{
-  "decision": "approve" | "reject"
-}
-```
-
-### Đầu ra minh họa
-
-Mã thành công: 200 OK.
-
-Đây là cấu trúc ví dụ thành công, không phải kết quả chạy hoặc schema đã chốt. Giá trị mẫu không phải fixture nghiệm thu. Envelope và mã thành công theo quy ước đã chốt; required/null và lỗi chi tiết còn DEC-017.
-
-```json
-{
-  "success": true,
-  "message": "Phê duyệt hồ sơ Creator thành công",
-  "data": {
-    "id": 4,
-    "role": "creator",
-    "creatorStatus": "approved"
-  }
-}
-```
-
-### Lỗi đang được mô tả
-
-- 400 Bad Request: Quyết định review không hợp lệ (phải là "approve" hoặc "reject")
-- 401 Unauthorized: Chưa đăng nhập
-- 403 Forbidden: Yêu cầu quyền Admin
-- 404 Not Found: Yêu cầu không tồn tại hoặc đã được xử lý trước đó
-- 500 Internal Server Error: Lỗi cập nhật CSDL
-
-Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/DB dịch vụ và mọi nhánh mới. Envelope lỗi đã chọn ở README; code/chi tiết từng lỗi còn DEC-017.
-
-### Tác động dữ liệu và giới hạn
-
-CONFIRMED: approve cấp quyền Creator, reject giữ quyền hiện tại. Hồ sơ pending bất biến, hồ sơ bị từ chối có thể nộp lần mới. Quyền DB có hiệu lực ở request tiếp theo. Path id là application ID, khóa hàng hồ sơ khi review, `users.role` cấp quyền và `creatorStatus` suy từ hồ sơ mới nhất. Body lý do, response và transaction cạnh tranh còn DEC-005/017/022. [Schema](../architecture/data-model.md#target-model).
-
-Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
-
-Kiểm thử dự kiến: [TC-18](../testing/acceptance.md#tc-18). Chỉ phần đã xác nhận là ràng buộc; hoàn tất các ô wire còn thiếu trước triển khai endpoint cuối cùng.
+Chỉ review hồ sơ `pending`. Duyệt cấp quyền Creator, từ chối giữ quyền hiện tại. Quyền DB có hiệu lực ở request tiếp theo. Review khóa hàng hồ sơ; thứ tự khóa với user và các nhánh giao dịch khác còn DEC-022. [BR-002](../requirements/business-rules.md#br-002), [DEC-005](../decisions/open-decisions.md#dec-005), [TC-18](../testing/acceptance.md#tc-18).
 
 <a id="api-26"></a>
 

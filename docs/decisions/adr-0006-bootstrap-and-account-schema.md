@@ -15,3 +15,5 @@ Giao dịch auth lấy khóa hàng user trước. Lượt gửi OTP được ghi
 ADR này bổ sung [ADR-0001](adr-0001-authentication-and-sessions.md), [ADR-0003](adr-0003-backend-and-database.md) và [ADR-0005](adr-0005-simple-backend-contracts.md). Chính sách IP, xử lý `reserved` bị gián đoạn, hợp đồng HTTP và vận hành online tiếp tục được theo dõi ở sổ DEC. Xem [kiểm chứng bootstrap](../project/status.md#backend-bootstrap-run-2026-11-18) để biết phiên bản package và môi trường thực tế.
 
 Ngày 20/11/2026, [ADR-0007](adr-0007-single-initial-database-migration.md) thay phạm vi ba bảng theo từng luồng bằng một migration khởi tạo chín bảng. Nền tảng, DDL ba bảng tài khoản và giao dịch auth tiếp tục áp dụng.
+
+Ngày 21/11/2026, [ADR-0008](adr-0008-registration-otp.md) chốt hạn mức IP, phục hồi `reserved` và hợp đồng chính cho OTP đăng ký.
