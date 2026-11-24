@@ -55,6 +55,14 @@ Bổ sung cùng ngày: [ADR-0004 audio và vòng đời file](adr-0004-audio-con
 
 Sau [xác nhận đơn giản](open-decisions.md#evidence-simple-2026-11-17), [ADR-0005](adr-0005-simple-backend-contracts.md) bổ sung auth/nền tảng và ghi thay đổi quy tắc reorder.
 
-Ngày 18/11/2026, [ADR-0006](adr-0006-bootstrap-and-account-schema.md) ghi baseline, lệnh local, schema ba bảng tài khoản và giao dịch auth. Sổ DEC hiện có 14 `ACCEPTED` và 8 `OPEN`. [Xác nhận bootstrap](open-decisions.md#evidence-bootstrap-auth-2026-11-18).
+Ngày 18/11/2026, [ADR-0006](adr-0006-bootstrap-and-account-schema.md) ghi baseline, lệnh local, schema ba bảng tài khoản và giao dịch auth. [Xác nhận bootstrap](open-decisions.md#evidence-bootstrap-auth-2026-11-18).
 
 Ngày 20/11/2026, [ADR-0007](adr-0007-single-initial-database-migration.md) ghi quyết định dùng một migration khởi tạo chín bảng trên PostgreSQL 18 trống.
+
+Ngày 21/11/2026, [ADR-0008](adr-0008-registration-otp.md) ghi quyết định cho OTP đăng ký, gồm hạn mức IP, xử lý gián đoạn và mật khẩu của lần đăng ký khi xác minh/gửi lại. [Xác nhận](open-decisions.md#evidence-registration-otp-2026-11-21).
+
+Ngày 21/11/2026, [ADR-0009](adr-0009-password-reset-otp.md) ghi quyết định cho OTP reset, hạn mức IP và lịch dọn. DEC-003 chuyển sang `ACCEPTED`. [Xác nhận](open-decisions.md#evidence-password-reset-otp-2026-11-21).
+
+Ngày 22/11/2026, [DEC-005](open-decisions.md#dec-005) chuyển sang `ACCEPTED` với hợp đồng Auth/CSRF, Creator và playlist. [Xác nhận](open-decisions.md#evidence-api-contracts-2026-11-22).
+
+Cùng ngày, [ADR-0010](adr-0010-local-runtime-scope.md) ghi phạm vi local, cấu hình auth/media và hướng mở rộng. DEC-014 chuyển sang `ACCEPTED`; sổ có 17 `ACCEPTED` và 5 `OPEN`. [Xác nhận](open-decisions.md#evidence-local-runtime-2026-11-22).

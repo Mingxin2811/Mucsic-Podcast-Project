@@ -1,6 +1,6 @@
 # Yêu cầu chất lượng
 
-Ngưỡng/lựa chọn đã được xác nhận ngày 17/11/2026 theo [sổ DEC](../decisions/open-decisions.md#evidence-2026-11-17); protocol chưa đủ vẫn DRAFT. Đây không phải kết quả đo; toàn bộ runtime NOT_RUN.
+Ngưỡng và lựa chọn đã được xác nhận theo [sổ DEC](../decisions/open-decisions.md#evidence-2026-11-17). Quy trình đo còn thiếu giữ `DRAFT`. Các phép đo nghiệm thu hiệu năng và media vẫn `NOT_RUN`. Bằng chứng hiện có bao gồm bootstrap HTTP và migration chín bảng. [Hiện trạng](../project/status.md#single-database-migration-2026-11-20).
 
 <a id="nfr-001"></a>
 
@@ -12,26 +12,26 @@ CONFIRMED: p95 < 500 ms cho đọc danh sách/tìm kiếm/playlist; bộ đo 1.0
 
 ## NFR-002 Xác thực và kiểm soát truy cập
 
-CONFIRMED: OTP email thật trước login, JWT gắn phiên PostgreSQL 24 giờ tuyệt đối, không refresh. Cookie HttpOnly/Secure/SameSite=Lax khi online và bảo vệ CSRF. Kiểm tra user/quyền hiện tại, phiên và sở hữu. Logout thu hồi phiên hiện tại. Khóa/đổi/reset mật khẩu thu hồi các phiên của user. Đổi khóa JWT thu hồi các phiên hiện có. Phiên còn hạn tồn tại qua restart. DB lỗi trả lỗi dịch vụ. Hash/OTP/JWT không xuất hiện trong JSON hoặc log bàn giao. Cấu hình Resend/HMAC/scrypt, secret, cookie và giao dịch auth được mô tả trong tài liệu xác thực. IP limit, timeout cụ thể, `reserved`, phối hợp đổi khóa online và wire CSRF/Domain còn DEC-003/014/017/022. TC-01–TC-05/TC-11/TC-14/TC-15/TC-18. [Xác thực](../architecture/security-and-media.md), [BR-003](business-rules.md#br-003).
+CONFIRMED: OTP email thật trước login, JWT gắn phiên PostgreSQL 24 giờ, cookie HttpOnly/SameSite=Lax và bảo vệ CSRF. HTTP local tắt Secure. Kiểm phiên, quyền DB và sở hữu. Logout thu hồi phiên hiện tại; khóa, đổi/reset mật khẩu và đổi khóa JWT thu hồi các phiên tương ứng. Phiên hợp lệ còn sau restart. OTP dùng hạn mức theo email, timeout và lịch dọn. Với email hợp lệ về cú pháp, API-32 trả cùng `202` với nội dung và thời gian phản hồi tương đương giữa các nhánh. Chi tiết HTTP thuộc DEC-017, migration để lưu IP `NULL` thuộc DEC-022. TC-01–TC-05/TC-11/TC-14/TC-15/TC-18. [Xác thực](../architecture/security-and-media.md), [BR-003](business-rules.md#br-003).
 
 <a id="nfr-003"></a>
 
 ## NFR-003 Toàn vẹn và phục hồi
 
-CONFIRMED: upload kiểm tra → chuyển file → ghi DB/COMMIT; rollback chắc chắn dọn mới, COMMIT không rõ phải đối chiếu; cleanup startup/30 phút, tuổi >24 giờ và kiểm tra active/tham chiếu kể cả soft delete; giao dịch playlist và lượt nghe nguyên tử, UNIQUE thứ tự kiểm commit/reorder ID hiển thị/ẩn cuối, cooldown trượt 30 phút/giữ bảy ngày, giữ hàng/liên kết/file khi soft delete; có một lần thử backup/restore thành công trước nghiệm thu. Chưa có backup hoặc schema đích đã chạy. Backup retention/lịch/nơi lưu/protocol restore và recovery state còn DEC-014/DEC-022. Không nhầm lịch cleanup đã chọn với retention backup chưa chọn. TC-09/TC-13/TC-16/TC-19/TC-21.
+CONFIRMED: local giữ nhất quán DB/file khi upload, rollback và commit không rõ kết quả. Cleanup lúc khởi động và mỗi 30 phút kiểm tuổi trên 24 giờ, thao tác active và tham chiếu kể cả soft delete. Giao dịch playlist và lượt nghe nguyên tử; UNIQUE thứ tự kiểm tại commit. DB và media giữ qua restart. Recovery file thuộc DEC-022. Backup/restore vận hành thuộc hướng mở rộng. TC-09/13/16/19/21. [Bằng chứng migration](../project/status.md#single-database-migration-2026-11-20).
 
 <a id="nfr-004"></a>
 
 ## NFR-004 Media
 
-CONFIRMED: bắt đầu nghe ≤ 1 giây là phép đo tích hợp riêng, có seek/HTTP Range. Audio/ảnh theo BR-005 (30/5 MiB). Request audio mới phải bị từ chối sau gỡ track/khóa Creator; request đã bắt đầu được hoàn tất. File local máy chủ bền vững; không nhận thay audio trong MVP. GET/HEAD audio, single Range/status/header, no-store và lỗi 404/503 đã chọn; HEAD không body. ffprobe/FFmpeg/Sharp, duration ceiling INT cần được kiểm chứng CBR/VBR; làm tròn không bảo đảm sai số phép probe. Điểm đo/file/network, versions/limits và conditional HTTP/recovery state còn DEC-014/DEC-015/DEC-017/DEC-022. TC-08/TC-09/TC-17/TC-20; thời gian API metadata không chứng minh thời gian nghe.
+CONFIRMED: bắt đầu nghe ≤ 1 giây là phép đo tích hợp riêng, có seek/HTTP Range. Audio/ảnh theo BR-005 và [giới hạn xử lý local](../architecture/security-and-media.md#upload-kiem-tra-file-va-duration). Request audio mới bị từ chối sau gỡ/khóa; request đã bắt đầu được hoàn tất. GET/HEAD audio, single Range/no-store và lỗi 404/503 đã chọn. Duration ceiling cần kiểm với MP3 CBR/VBR. Điểm đo, file mẫu, điều kiện mạng, HTTP ngoài phần đã chốt và recovery state còn DEC-015/017/022. TC-08/09/17/20.
 
 <a id="nfr-005"></a>
 
-## NFR-005 Tái hiện môi trường và online
+## NFR-005 Tái hiện môi trường local
 
-CONFIRMED: phát triển local và sẵn sàng triển khai online, OTP email thật, media trên filesystem máy chủ. Baseline Node.js 24.22.3 LTS/PostgreSQL 18.7, Express 5, JavaScript ESM/npm và `pg`. Bootstrap local/migrate/test đã kiểm chứng với DB thử riêng. Online cần cùng origin/HTTPS và tài khoản, khóa, domain gửi Resend. Hosting/volume/cấu hình online và ma trận OS còn DEC-014/016. Ngân sách online chưa được duyệt. [Thiết lập](../development/local-setup.md), [kết quả bootstrap](../project/status.md#backend-bootstrap-run-2026-11-18), TC-19/TC-21.
+CONFIRMED: chạy local trên Windows/PowerShell. Baseline Node.js 24.22.3 LTS, PostgreSQL 18.7, Express 5, JavaScript ESM/npm và `pg`. Bootstrap/migrate/test đã kiểm chứng trong môi trường và DB thử ghi ở status. Media lưu trên máy chạy backend. Demo OTP thật cần Internet và Resend; test tích hợp dùng Resend giả lập. [Thiết lập local](../development/local-setup.md), [kết quả bootstrap](../project/status.md#backend-bootstrap-run-2026-11-18), TC-19/21.
 
 ## Điều kiện nghiệm thu
 
-Không còn Critical/High trong phạm vi MVP đã xác nhận; phải có bằng chứng từng kịch bản và một lần thử restore. Định nghĩa severity, người nghiệm thu, protocol phần còn thiếu theo DEC-015/DEC-016; chưa chọn bằng cách viết test. Chi tiết thiếu expected được báo BLOCKED khi thực thi; chưa chạy là NOT_RUN.
+Không còn Critical/High trong phạm vi local đã xác nhận và cần bằng chứng cho từng kịch bản. Định nghĩa severity, người nghiệm thu và protocol đo còn DEC-015/016; chưa chạy ghi `NOT_RUN`. [Xác nhận local](../decisions/open-decisions.md#evidence-local-runtime-2026-11-22).

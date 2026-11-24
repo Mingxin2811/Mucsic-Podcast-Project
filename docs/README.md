@@ -2,11 +2,11 @@
 
 Bộ docs phục vụ giao việc backend, database, kiểm thử và quản lý dự án. Phần `CONFIRMED` có nguồn tại sổ DEC. Chi tiết chưa chốt giữ `DRAFT`. Bootstrap backend và một migration khởi tạo chín bảng đã chạy trên PostgreSQL 18 thử nghiệm. [Hiện trạng](project/status.md#single-database-migration-2026-11-20).
 
-## Hiện hành sau xác nhận bootstrap và schema tài khoản
+## Hiện hành sau xác nhận phạm vi local
 
-Ngày 18/11/2026 đã chốt bootstrap và auth. Ngày 20/11/2026 đã chốt một migration cho chín bảng nghiệp vụ trên PostgreSQL 18 trống. Hiện **39 API-ID, 14 DEC ACCEPTED/8 OPEN, 7 ADR**, với 12 UC/9 BR/5 NFR/21 TC. [ADR-0006](decisions/adr-0006-bootstrap-and-account-schema.md), [ADR-0007](decisions/adr-0007-single-initial-database-migration.md).
+Ngày 20/11/2026 đã chốt migration khởi tạo chín bảng. Ngày 22/11/2026 đã chốt hợp đồng Auth/CSRF, Creator và playlist, cập nhật nền tảng theo phạm vi chạy local trên Windows/PowerShell. Hiện **39 API-ID, 17 DEC ACCEPTED/5 OPEN, 10 ADR**, với 12 UC/9 BR/5 NFR/21 TC. [Xác nhận local](decisions/open-decisions.md#evidence-local-runtime-2026-11-22).
 
-Phần còn mở gồm IP limit, wire auth, thứ tự khóa khi API cập nhật nhiều bảng, phiên bản và giới hạn media, recovery, hosting, demo và nghiệm thu. [ADR-0005](decisions/adr-0005-simple-backend-contracts.md), [hợp đồng còn thiếu](api/README.md#contract-gaps).
+Phần còn mở gồm chi tiết HTTP, thứ tự khóa và recovery, dữ liệu demo, cách đo local và quản trị dự án. Migration cho phép `request_ip` nhận `NULL` đã được chọn và còn chờ triển khai. Online, backup/restore và hạn mức OTP theo IP thuộc hướng mở rộng. [Khoảng trống API](api/README.md#contract-gaps).
 
 ## Bắt đầu đọc
 

@@ -265,7 +265,7 @@ Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/
 
 ### Tác động dữ liệu và giới hạn
 
-CONFIRMED: client listenedSeconds >=10, server kiểm input/cooldown; trượt 30 phút từ lượt gần nhất. Thành viên user ID, Guest UUID cookie ký; login chuyển user ID chấp nhận có thể thêm lượt. Cooldown/tăng đếm cùng transaction; lặp 200 với data.counted:false, giữ cooldown bảy ngày rồi dọn. Tín hiệu client không chứng minh nghe thật. Cookie/numeric/response đầy đủ (kể cả playCount khi lặp) DEC-014/017, schema/cạnh tranh DEC-022.
+CONFIRMED: client listenedSeconds >=10, server kiểm input và cooldown trượt 30 phút. Thành viên dùng user ID; Guest dùng UUID trong cookie ký HMAC-SHA256 bằng khóa riêng. Login chuyển user ID có thể thêm lượt. Cooldown và tăng đếm cùng transaction; lặp trả 200 với `data.counted: false`, giữ cooldown bảy ngày. Thuộc tính cookie, validation và response ngoài phần xác nhận thuộc DEC-017; giao dịch và dọn thuộc DEC-022.
 
 Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
 
@@ -336,7 +336,7 @@ Bảng lỗi là mapping DRAFT từ đặc tả cũ, chưa bao phủ email/CSRF/
 
 ### Tác động dữ liệu và giới hạn
 
-CONFIRMED: MP3 ≤30 MiB, cover JPG/PNG ≤5 MiB; duration đọc server, creator_id từ phiên; Admin không cần approved, Creator cần approved. File local máy chủ: ffprobe/FFmpeg kiểm tra MP3, Sharp kiểm tra/mã hóa lại cover, tên UUID; duration hữu hạn >0 và ceiling INT giây. Vùng tạm/chính cùng filesystem; publish file rồi ghi track/COMMIT mới trả 201. Rollback chắc chắn dọn mới; commit không rõ phải đối chiếu DB. audioUrl trỏ API-28. Xem [vòng đời file](../architecture/security-and-media.md#file-lifecycle); package versions/timeouts/concurrency và lỗi phụ còn DEC-014/DEC-017/DEC-022.
+CONFIRMED: MP3 ≤30 MiB và cover JPG/PNG ≤5 MiB. Duration đọc trên server, creator_id từ phiên; Creator cần approved, Admin được upload. ffprobe/FFmpeg kiểm tra MP3, Sharp mã hóa lại ảnh, tên UUID. Vùng tạm/chính cùng filesystem; publish rồi COMMIT mới trả 201. Rollback chắc chắn dọn mới; commit không rõ cần đối chiếu DB. audioUrl trỏ API-28. [Phiên bản và giới hạn local](../architecture/security-and-media.md#upload-kiem-tra-file-va-duration), [vòng đời file](../architecture/security-and-media.md#file-lifecycle). Lỗi phụ và recovery thuộc DEC-017/022.
 
 Khoảng trống liên quan: [danh mục cần đặc tả](README.md#contract-gaps).
 

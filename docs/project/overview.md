@@ -25,11 +25,11 @@ Danh mục nghiệp vụ UC01–UC12 gồm tài khoản, khám phá, tìm kiếm
 
 Bộ docs phục vụ backend, database, kiểm thử và quản lý dự án. Thiết kế màn hình, giao diện, điều hướng, component và cách triển khai frontend nằm ngoài phạm vi bộ tài liệu này.
 
-Ngoài MVP: thanh toán/Premium, AI speech-to-text, nghe offline, chia sẻ playlist công khai/riêng tư và ứng dụng mobile native. Hệ thống phải sẵn sàng triển khai online, dùng OTP email thật; file nhạc/podcast vẫn lưu filesystem local của máy chủ backend ([DEC-008](../decisions/open-decisions.md#dec-008)). Resend HTTPS đã chọn cho email; tài khoản/API key/domain gửi xác minh chưa thiết lập. Hosting/domain sản phẩm/cấu hình triển khai chưa chọn. Không yêu cầu toàn bộ sản phẩm chạy độc lập Internet.
+Ngoài MVP: thanh toán/Premium, AI speech-to-text, nghe offline, chia sẻ playlist công khai/riêng tư và ứng dụng mobile native. Phạm vi hiện tại là chạy local trên Windows/PowerShell. Nhạc và podcast lưu trên filesystem của máy chạy backend. Demo OTP dùng email thật qua Resend và cần Internet. Triển khai online, backup/restore vận hành và hạn mức OTP theo IP là hướng mở rộng. [ADR-0010](../decisions/adr-0010-local-runtime-scope.md).
 
 ## Định hướng kiến trúc
 
-Đích là Node.js 24 LTS/Express 5, JavaScript ESM/npm, PostgreSQL 18 qua pg, JWT cùng phiên PostgreSQL/cookie bảo vệ và filesystem máy chủ. Hỗ trợ phát triển local và sẵn sàng online; repo chưa có ứng dụng thực thi. Công cụ/config và wire còn thiếu xem [kiến trúc](../architecture/overview.md); lựa chọn được xác nhận không phải cấu hình đã cài.
+Đích là Node.js 24 LTS/Express 5, JavaScript ESM/npm, PostgreSQL 18 qua pg, JWT cùng phiên PostgreSQL/cookie bảo vệ và filesystem máy chủ. Bootstrap HTTP và migration chín bảng đã chạy trên PostgreSQL 18 thử nghiệm. Các API nghiệp vụ còn ở mức đặc tả. [Kiến trúc](../architecture/overview.md), [hiện trạng và bằng chứng](status.md#single-database-migration-2026-11-20).
 
 ## Thuật ngữ
 
@@ -46,4 +46,4 @@ Ngoài MVP: thanh toán/Premium, AI speech-to-text, nghe offline, chia sẻ play
 | ADR | Bản ghi quyết định kiến trúc và lý do |
 | Fixture | Dữ liệu thử có điều kiện đầu vào xác định, không mặc định là seed hiện có |
 
-Bổ sung [phương án đơn giản](../decisions/open-decisions.md#evidence-simple-2026-11-17): một backend/PostgreSQL, công cụ đã chọn tại [local setup](../development/local-setup.md); lượt nghe là tín hiệu client/cooldown trượt 30 phút, Guest chuyển user có thể thêm lượt; search_text chuẩn hóa; reorder ID hiển thị/ẩn cuối-hiện lại cuối. Đây là phạm vi đã xác nhận, chưa là ứng dụng chạy được.
+Bổ sung [phương án đơn giản](../decisions/open-decisions.md#evidence-simple-2026-11-17): một backend/PostgreSQL, công cụ đã chọn tại [local setup](../development/local-setup.md); lượt nghe là tín hiệu client/cooldown trượt 30 phút, Guest chuyển user có thể thêm lượt; search_text chuẩn hóa; reorder ID hiển thị/ẩn cuối-hiện lại cuối. Các luồng lượt nghe, tìm kiếm và sắp xếp playlist còn ở mức đặc tả.

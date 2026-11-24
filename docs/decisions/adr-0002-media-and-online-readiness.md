@@ -1,5 +1,7 @@
 # ADR-0002 Media local máy chủ và sẵn sàng online
 
+[ADR-0010](adr-0010-local-runtime-scope.md) thay phạm vi online bằng local. Quyết định về nơi lưu media và kiểm tra trạng thái vẫn áp dụng.
+
 Trạng thái: **Accepted**, phạm vi lựa chọn kiến trúc ghi dưới đây. Ngày: **17/11/2026**, Asia/Saigon. Người xác nhận: người dùng trong phiên làm việc; [bằng chứng](open-decisions.md#evidence-2026-11-17).
 
 Quyết định liên quan: [DEC-008](open-decisions.md#dec-008), [DEC-009](open-decisions.md#dec-009), [DEC-011](open-decisions.md#dec-011), [DEC-018](open-decisions.md#dec-018).

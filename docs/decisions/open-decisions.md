@@ -1,6 +1,6 @@
 # Sổ quyết định và phần còn mở
 
-Cập nhật ngày **20/11/2026**, Asia/Saigon. Giữ đường dẫn `open-decisions.md` và mã DEC cũ để không phá liên kết.
+Cập nhật ngày **22/11/2026**, Asia/Saigon. Giữ đường dẫn `open-decisions.md` và mã DEC cũ để không phá liên kết.
 
 <a id="evidence-2026-11-17"></a>
 
@@ -28,7 +28,7 @@ Người xác nhận: **người dùng trong phiên làm việc**. Sau phần gi
 
 Người xác nhận: **người dùng trong phiên làm việc**, Asia/Saigon. Sau đề xuất chín nhóm DEC-003/005/010/012/014/017/019/021/022, người dùng xác nhận: “tôi chập nhận những đề xuất này. hãy cập nhật docs”. Chấp nhận công cụ, scrypt/HS256, Resend/OTP, API bổ sung, cookie/CSRF/validation, mô hình đích, lượt nghe, search_text, reorder hiển thị và giới hạn plain text. Không mở rộng sang hosting, protocol nghiệm thu, versions/limits media hoặc schema/wire chưa nêu.
 
-Reorder **thay thế** quy tắc trước về gửi mọi ID liên kết: nay chỉ gửi toàn bộ ID đang hiển thị, giữ liên kết ẩn ở cuối. DEC-010/012/019/021 giải quyết phạm vi; hiện **14 ACCEPTED, 8 OPEN**. DEC-003/005/014/017/022 vẫn OPEN ở chi tiết ghi riêng. [ADR-0005](adr-0005-simple-backend-contracts.md), [kế hoạch](../plans/2026-11-17-simple-backend-decisions.md), [bằng chứng](../project/status.md#simple-sync-2026-11-17).
+Reorder **thay thế** quy tắc trước về gửi mọi ID liên kết: nay chỉ gửi toàn bộ ID đang hiển thị, giữ liên kết ẩn ở cuối. DEC-010/012/019/021 giải quyết phạm vi. Tại mốc này có **14 ACCEPTED, 8 OPEN**; DEC-003/005/014/017/022 còn chi tiết mở. [ADR-0005](adr-0005-simple-backend-contracts.md), [kế hoạch](../plans/2026-11-17-simple-backend-decisions.md), [bằng chứng](../project/status.md#simple-sync-2026-11-17).
 
 <a id="evidence-bootstrap-auth-2026-11-18"></a>
 
@@ -36,7 +36,31 @@ Reorder **thay thế** quy tắc trước về gửi mọi ID liên kết: nay c
 
 Người dùng trong phiên xác nhận: “tôi chấp nhận những đề xuất này của bạn, hãy cập nhật vào docs”. Xác nhận bao gồm baseline runtime, cấu hình và lệnh local/migrate/test, chính sách khóa JWT và định dạng hash, migration đầu tiên cho ba bảng tài khoản, thứ tự khóa và xử lý kết quả gửi OTP. [ADR-0006](adr-0006-bootstrap-and-account-schema.md), [kế hoạch cập nhật](../plans/2026-11-18-backend-bootstrap-decisions.md).
 
-DEC-003/014/022 còn `OPEN` ở các phần ghi riêng. Ngưỡng/phạm vi IP, đăng ký lại, wire HTTP, chi tiết schema các luồng sau, media, hosting và backup tiếp tục được quản lý tại DEC tương ứng.
+Tại mốc này, DEC-003/014/022 còn `OPEN` ở các phần ghi riêng. Ngưỡng/phạm vi IP, đăng ký lại, wire HTTP, chi tiết schema các luồng sau, media, hosting và backup tiếp tục được quản lý tại DEC tương ứng.
+
+<a id="evidence-registration-otp-2026-11-21"></a>
+
+## Xác nhận OTP đăng ký ngày 21/11/2026
+
+Người dùng trong phiên trả lời “quyết định như vậy đi” khi trích phương án chi tiết cho API-01/30/31. Phương án được xác nhận yêu cầu mật khẩu của lần đăng ký hiện tại khi xác minh và gửi lại, có nhánh bắt đầu lại sau 24 giờ, giới hạn gửi theo IP và thời gian chờ 15 giây với `reserved`. [ADR-0008](adr-0008-registration-otp.md), [kế hoạch đồng bộ](../plans/2026-11-21-registration-otp-decisions.md).
+
+<a id="evidence-password-reset-otp-2026-11-21"></a>
+
+## Xác nhận OTP khôi phục mật khẩu ngày 21/11/2026
+
+Người dùng trong phiên trả lời “tôi chấp nhận đề xuất này, hãy cập nhật dóc” cho phương án DEC-003. Phạm vi xác nhận gồm hợp đồng chính API-32/33, bảo vệ thông tin tài khoản trong phản hồi, hạn mức reset tách khỏi đăng ký, nơi lưu lượt yêu cầu theo IP, vòng đời mã reset, lỗi sai mật khẩu ở API-30/31, phản hồi `reserved` ở API-30 và lịch dọn dữ liệu. [ADR-0009](adr-0009-password-reset-otp.md), [kế hoạch đồng bộ](../plans/2026-11-21-password-reset-otp-decisions.md).
+
+<a id="evidence-api-contracts-2026-11-22"></a>
+
+## Xác nhận hợp đồng API ngày 22/11/2026
+
+Người dùng trong phiên trả lời “tôi chấp nhận phương án này, hãy cập nhật docs” cho đề xuất DEC-005 về JSON, status, validation và lỗi của API Auth/CSRF, Creator và playlist. Phạm vi và các tài liệu sở hữu được ghi tại [DEC-005](#dec-005). [Kế hoạch đồng bộ](../plans/2026-11-22-api-contract-decisions.md).
+
+<a id="evidence-local-runtime-2026-11-22"></a>
+
+## Xác nhận phạm vi local ngày 22/11/2026
+
+Người dùng xác nhận dự án chạy local, chuyển triển khai online, backup/restore và hạn mức OTP theo IP sang hướng mở rộng tương lai, rồi trả lời “tôi chấp nhận những đề xuất này” cho phương án DEC-014 đã điều chỉnh. Xác nhận gồm nền tảng Windows/PowerShell, giới hạn OTP theo email, định dạng hash, thay khóa JWT local, ký cookie Guest, công cụ/giới hạn media, migration cho phép `request_ip` nhận `NULL` và nghiệm thu local. [ADR-0010](adr-0010-local-runtime-scope.md), [kế hoạch](../plans/2026-11-22-local-runtime-decisions.md).
 
 ## Danh mục
 
@@ -44,9 +68,9 @@ DEC-003/014/022 còn `OPEN` ở các phần ghi riêng. Ngưỡng/phạm vi IP, 
 | --- | --- | --- |
 | [DEC-001](#dec-001) | Phạm vi và ưu tiên use case | `ACCEPTED` |
 | [DEC-002](#dec-002) | Thời điểm đăng ký Creator | `ACCEPTED` |
-| [DEC-003](#dec-003) | OTP và khôi phục mật khẩu | `OPEN` |
+| [DEC-003](#dec-003) | OTP và khôi phục mật khẩu | `ACCEPTED` |
 | [DEC-004](#dec-004) | Đường dẫn và method API | `ACCEPTED` |
-| [DEC-005](#dec-005) | Chức năng thiếu hợp đồng API | `OPEN` |
+| [DEC-005](#dec-005) | Chức năng thiếu hợp đồng API | `ACCEPTED` |
 | [DEC-006](#dec-006) | Vòng đời JWT và thay đổi quyền | `ACCEPTED` |
 | [DEC-007](#dec-007) | Dữ liệu hồ sơ Creator | `ACCEPTED` |
 | [DEC-008](#dec-008) | Nơi lưu media | `ACCEPTED` |
@@ -55,7 +79,7 @@ DEC-003/014/022 còn `OPEN` ở các phần ghi riêng. Ngưỡng/phạm vi IP, 
 | [DEC-011](#dec-011) | Duration và thay file tác phẩm | `ACCEPTED` |
 | [DEC-012](#dec-012) | Ngữ nghĩa tìm kiếm tiếng Việt | `ACCEPTED` |
 | [DEC-013](#dec-013) | Hệ quản trị và phiên bản database | `ACCEPTED` |
-| [DEC-014](#dec-014) | Toolchain backend và database | `OPEN` |
+| [DEC-014](#dec-014) | Toolchain backend và database | `ACCEPTED` |
 | [DEC-015](#dec-015) | Điều kiện đo chất lượng | `OPEN` |
 | [DEC-016](#dec-016) | Kế hoạch và quản trị dự án | `OPEN` |
 | [DEC-017](#dec-017) | Quy ước hợp đồng HTTP | `OPEN` |
@@ -109,17 +133,39 @@ Cần xác nhận luồng, điều kiện nộp lại và tác động tới đ�
 
 ## DEC-003 OTP và khôi phục mật khẩu
 
-Trạng thái: `OPEN`. Xác nhận mới: người dùng trong phiên làm việc, **17/11/2026**; [bằng chứng](#evidence-simple-2026-11-17).
+Trạng thái: `ACCEPTED`. Phạm vi hiện hành theo [xác nhận local ngày 22/11/2026](#evidence-local-runtime-2026-11-22).
 
 ### Kết quả hiện hành đã xác nhận
 
-Resend HTTPS qua fetch backend, cần tài khoản/API key/domain gửi xác minh, chưa thiết lập. Đăng ký tạo user email_verified_at NULL, chưa login. OTP sáu số/năm phút/một lần/ba sai; resend sau 60 giây hủy cũ. Digest HMAC/secret riêng, số lần sai/thời hạn lưu PostgreSQL. Tối đa 5 lần gửi/email/giờ và thêm IP limit. Mail lỗi giữ user chưa xác minh, báo tạm thời/cho resend/không tạo user trùng. Reset chỉ user đã xác minh/chưa khóa; yêu cầu reset phản hồi chung không tiết lộ email tồn tại; verify/reset không tự login.
+Local áp tối đa năm lượt cấp mã đã ghi/email/giờ, giãn ít nhất 60 giây; đăng ký và gửi lại dùng chung bộ đếm, reset dùng bộ đếm riêng. API-01/31 chạm hạn mức email trả `429 RATE_LIMITED` kèm `Retry-After`. API-32 trả phản hồi chung `202` với mọi email hợp lệ về cú pháp, kể cả khi chạm hạn mức email hoặc Resend lỗi. Hạn mức IP và việc dọn bản ghi đếm IP thuộc hướng mở rộng tương lai. Lịch dọn lịch sử OTP mỗi giờ với thời hạn giữ bảy ngày vẫn áp dụng. Chi tiết legacy và các quy tắc vòng đời còn hiệu lực được lưu ở mốc 21/11 bên dưới; khi đọc hợp đồng local dùng [API Auth](../api/auth.md) và [vòng đời OTP](../architecture/security-and-media.md#otp-delivery).
+
+### Chính sách và xác nhận đến 21/11/2026
+
+Resend HTTPS qua fetch backend, cần tài khoản/API key/domain gửi xác minh, chưa thiết lập. Đăng ký tạo user email_verified_at NULL, chưa login. OTP sáu số/năm phút/một lần/ba sai; resend sau 60 giây hủy cũ. Digest HMAC/secret riêng, số lần sai/thời hạn lưu PostgreSQL. Tại mốc này chọn tối đa 5 lần gửi/email/giờ và thêm IP limit. Mail lỗi giữ user chưa xác minh, báo tạm thời/cho resend/không tạo user trùng. Reset chỉ user đã xác minh/chưa khóa; yêu cầu reset phản hồi chung không tiết lộ email tồn tại; verify/reset không tự login.
 
 Ngày 18/11/2026 đã chốt ghi lượt gửi và mã trước, gọi Resend sau commit. Lượt đã ghi tính vào hạn mức. Các trạng thái là `reserved`, `accepted`, `failed`, `unknown`. Lỗi xác định vô hiệu hóa mã. Kết quả chưa rõ giữ mã đủ điều kiện xác minh cho đến khi hết hạn hoặc bị thay. [Xác nhận](#evidence-bootstrap-auth-2026-11-18), [vòng đời OTP](../architecture/security-and-media.md#otp-delivery).
 
-### Phần còn thiếu và giới hạn
+Ngày 21/11/2026 chốt cho OTP đăng ký:
 
-Còn ngưỡng/cửa sổ/phạm vi IP limit và cách bảo đảm tính nguyên tử khi cùng IP gửi cho nhiều tài khoản. Cần chốt timeout gọi Resend, xử lý `reserved` nếu process dừng và điều kiện xác minh trong trạng thái đó, đăng ký lại và retention. Wire/status/error gửi/resend/reset và phản hồi chung khi provider lỗi thuộc DEC-005/017. Nếu đếm yêu cầu reset cho email không tồn tại, cần quyết định cách lưu lượt đó cùng DEC-022.
+- Tối đa 20 lượt đã ghi/IP/cửa sổ trượt một giờ, tính chung đăng ký và gửi lại. Khóa theo IP trong transaction PostgreSQL để kiểm và ghi lượt gửi nguyên tử giữa nhiều tài khoản. Giữ 5 lượt/email/giờ, khoảng cách 60 giây và tính cả lượt gửi lỗi. Giữ lịch sử OTP đăng ký bảy ngày trước khi dọn.
+- Gọi Resend với timeout năm giây. Với `reserved` còn hiệu lực, yêu cầu xác minh trong 15 giây đầu được báo thử lại và giữ nguyên số lần sai. Từ 15 giây kể từ khi ghi mã, lần xác minh có thể chuyển mã sang `unknown` trong transaction rồi kiểm mã. Mã `unknown` giữ thời hạn ban đầu.
+- Email đã xác minh trả `409`. Email chưa xác minh trả `409` và hướng sang gửi lại. Sau 24 giờ kể từ lượt cấp mã gần nhất, cho phép đăng ký lại trên cùng user chưa xác minh, cập nhật tên và hash mật khẩu, vô hiệu hóa mã cũ còn hiệu lực và cấp mã mới trong cùng transaction. Điều kiện hạn mức vẫn áp dụng.
+- Xác minh và gửi lại yêu cầu mật khẩu của lần đăng ký hiện tại. Xác minh thành công đánh dấu mã đã dùng và xác minh email trong cùng transaction, sau đó đăng nhập riêng. Lựa chọn này gắn OTP với lần đăng ký có mật khẩu mà người dùng biết. [Hợp đồng Auth](../api/auth.md#api-30).
+
+### Xác nhận bổ sung cho OTP reset và OTP đăng ký ngày 21/11/2026
+
+- API-32 nhận `{email}`. Sau khi qua kiểm tra cú pháp và hạn mức IP, trả cùng `202` và nội dung chung cho mọi trạng thái tài khoản, hạn mức theo email và kết quả gửi, kể cả khi Resend lỗi hoặc timeout. Thời gian phản hồi phải tương đương giữa các nhánh. Chỉ cấp mã cho tài khoản đã xác minh và chưa khóa.
+- Reset dùng hạn mức riêng. Mỗi email có tối đa năm lượt cấp mã đã ghi mỗi giờ, cách nhau ít nhất 60 giây. Mỗi IP có tối đa 20 yêu cầu hợp lệ về cú pháp trong cửa sổ trượt một giờ, đếm trước khi tra tài khoản. Vượt hạn mức IP trả `429 RATE_LIMITED` kèm `Retry-After`. Lượt cấp mã lưu trong `otp_challenges`; lượt yêu cầu theo IP lưu riêng trong PostgreSQL, chỉ gồm IP và thời điểm.
+- Mã reset có sáu chữ số, hạn năm phút, dùng một lần và vô hiệu hóa ở lần sai thứ ba. Cấp mã mới vô hiệu hóa mã cũ. Gọi Resend sau commit với timeout năm giây. Lỗi xác định vô hiệu hóa mã; kết quả chưa rõ giữ mã đến hạn. Với mã còn hiệu lực ở trạng thái `reserved`, trong 15 giây đầu yêu cầu thử lại, giữ nguyên số lần sai. Từ mốc 15 giây, có thể chuyển sang `unknown` trong transaction rồi kiểm mã với hạn ban đầu.
+- API-33 trả `204` khi đổi mật khẩu, đánh dấu mã đã dùng và thu hồi mọi phiên thành công trong cùng transaction. Tài khoản không đủ điều kiện hoặc mã sai, hết hạn, đã dùng, bị thay hay còn chờ gửi trong 15 giây đầu cùng trả `400 VALIDATION_ERROR`. Người dùng đăng nhập riêng bằng mật khẩu mới.
+- API-30/31 sai mật khẩu trả `400 VALIDATION_ERROR`. API-30 chỉ tăng số lần sai OTP khi mật khẩu đúng và việc đối chiếu xác định mã sai. Với mã còn hiệu lực ở trạng thái `reserved` trong 15 giây đầu, API-30 trả `409 CONFLICT` kèm `error.details.retryAfterSeconds`.
+- Mỗi giờ dọn lịch sử OTP đăng ký và reset đã quá bảy ngày, cùng các bản ghi hạn mức IP reset đã ra khỏi cửa sổ một giờ.
+
+[Hợp đồng Auth](../api/auth.md#api-30), [vòng đời OTP](../architecture/security-and-media.md#otp-delivery), [ADR-0009](adr-0009-password-reset-otp.md).
+
+### Phụ thuộc còn lại
+
+[DEC-005](#dec-005) bổ sung JSON và các lỗi chính ngày 22/11. DEC-017 quản lý lỗi HTTP ngoài phần đã chốt. DEC-022 ghi thay đổi DDL cần triển khai để local lưu OTP mà không ghi IP.
 
 ### Trước lần chấp nhận phương án đơn giản — lịch sử giữ nguyên
 
@@ -168,15 +214,23 @@ Cần chốt route/method và có thật sự cần endpoint riêng hay không; 
 
 ## DEC-005 Chức năng thiếu hợp đồng API
 
-Trạng thái: `OPEN`. Xác nhận mới: người dùng trong phiên làm việc, **17/11/2026**; [bằng chứng](#evidence-simple-2026-11-17).
+Trạng thái: `ACCEPTED`. Người dùng trong phiên xác nhận ngày **22/11/2026**. [Bằng chứng](#evidence-api-contracts-2026-11-22).
 
 ### Kết quả hiện hành đã xác nhận
 
-Chọn POST /api/auth/verify-email, POST /api/auth/resend-verification, POST /api/auth/forgot-password, POST /api/auth/reset-password, POST /api/auth/change-password; POST /api/creator-applications, GET /api/creator-applications/me, PATCH /api/creator/channel, PATCH /api/playlists/:id/order; GET /api/auth/csrf theo DEC-017. Verify {email,otp}, reset {email,otp,newPassword}, đổi {currentPassword,newPassword}, reorder {trackIds:[...]}. API-25 dùng application ID. Rejected nộp POST hồ sơ mới, không thêm route resend hồ sơ. Cấp API-30–39 cho mười method/path tại API index; chưa coi đủ mọi wire.
+Ngày 17/11/2026 chọn POST /api/auth/verify-email, POST /api/auth/resend-verification, POST /api/auth/forgot-password, POST /api/auth/reset-password, POST /api/auth/change-password; POST /api/creator-applications, GET /api/creator-applications/me, PATCH /api/creator/channel, PATCH /api/playlists/:id/order; GET /api/auth/csrf theo DEC-017. Verify ban đầu là {email,otp}, được cập nhật dưới đây. Reset {email,otp,newPassword}, đổi {currentPassword,newPassword}, reorder {trackIds:[...]}. API-25 dùng application ID. Rejected nộp POST hồ sơ mới, không thêm route resend hồ sơ. Cấp API-30–39 cho mười method/path tại API index; chưa coi đủ mọi wire.
 
-### Phần còn thiếu và giới hạn
+Ngày 21/11/2026, API-30 chuyển từ `{email,otp}` sang `{email,otp,password}` và API-31 nhận `{email,password}`. API-01 giữ `{username,email,password}`. Mật khẩu ở API-30/31 phải khớp lần đăng ký hiện tại. [Hợp đồng Auth](../api/auth.md#api-30).
 
-Còn body/response/status tiếp nhận OTP/resend/forgot; request/response hồ sơ/kênh, tên field lĩnh vực/lý do và giới hạn; response CSRF/reorder, error/field validation còn thiếu. Chưa có route thực thi hoặc OpenAPI hoàn chỉnh.
+### Xác nhận bổ sung ngày 22/11/2026
+
+- Auth dùng `data.emailVerified` cho API-01/30/31 và `error.details.nextAction` cho nhánh đăng ký trùng cần gửi lại. API-32 trả cùng thông báo chung với `data: null`; API-33 giữ hành vi của DEC-003. API-34 trả `204` và xóa cookie khi thành công, sai mật khẩu hiện tại trả `400 VALIDATION_ERROR`. API-39 trả `data.csrfToken` dạng base64url, `Cache-Control: no-store` và `401 UNAUTHENTICATED` khi thiếu phiên hợp lệ. [Auth API](../api/auth.md).
+- Creator dùng `applicationId` và `submittedAt` xuyên suốt các API liên quan. Chốt body, giới hạn, nullability và response của API-35/36/37; danh sách chờ ưu tiên hồ sơ cũ nhất; review từ chối yêu cầu `rejectionReason` và dùng `404` cho hồ sơ không tồn tại, `409` cho hồ sơ đã xử lý. [API Creator](../api/creator-applications.md), [API-24/25](../api/admin.md#api-24).
+- Playlist trả thứ tự hiển thị ở API-38, dùng `400` cho mảng sai kiểu hoặc trùng ID và `409` cho tập ID khác tập đang hiển thị. API-20 trả `201` khi thêm mới, `200` khi thêm lại track đang hiển thị, và `404` khi track không khả dụng. API-21 trả `204` cả khi liên kết đã vắng sau khi kiểm tra playlist và quyền sở hữu. [API-20/21](../api/playlists.md#api-20), [API-38](../api/playlists.md#api-38).
+
+### Phụ thuộc còn lại
+
+Các quy tắc HTTP dùng chung và lỗi ngoài phần đã chốt thuộc DEC-017. Giao dịch cạnh tranh ở Creator và playlist thuộc DEC-022. Phiên này xác nhận đặc tả trong Markdown; hiện trạng route và kiểm chứng được ghi tại [status](../project/status.md#api-contract-decisions-2026-11-22).
 
 ### Trước lần chấp nhận phương án đơn giản — lịch sử giữ nguyên
 
@@ -228,7 +282,7 @@ Bổ sung creator_applications để lưu tên kênh, giới thiệu, lĩnh vự
 
 ### Phần còn thiếu và giới hạn
 
-Schema khởi tạo lưu lịch sử và tách dữ liệu kênh hiện tại khỏi dữ liệu lúc nộp. Trạng thái suy từ hồ sơ mới nhất. Thứ tự khóa khi review còn DEC-022, wire còn DEC-005/017. [Mô hình dữ liệu](../architecture/data-model.md#target-model).
+Schema khởi tạo lưu lịch sử và tách dữ liệu kênh hiện tại khỏi dữ liệu lúc nộp. Trạng thái suy từ hồ sơ mới nhất. [DEC-005](#dec-005) đã chốt hợp đồng Creator. Thứ tự khóa khi review còn DEC-022 và lỗi HTTP ngoài phần đã chốt còn DEC-017. [Mô hình dữ liệu](../architecture/data-model.md#target-model).
 
 ### Bối cảnh trước xác nhận — lịch sử 11/11/2026
 
@@ -244,11 +298,11 @@ Trạng thái: `ACCEPTED`. Xác nhận: người dùng trong phiên làm việc,
 
 ### Kết quả đã xác nhận
 
-Nhạc/podcast lưu filesystem local: khi online là ổ đĩa bền vững của máy chủ backend, không phải máy người nghe. Đường dẫn lưu cấu hình được. Hệ thống phải sẵn sàng triển khai online, OTP dùng email thật; không còn giả định toàn bộ demo độc lập Internet.
+Nhạc/podcast lưu trên filesystem của máy chạy backend, qua đường dẫn cấu hình được. Bản hiện tại chạy local. OTP vẫn dùng email thật qua Resend khi demo. [Xác nhận phạm vi local](#evidence-local-runtime-2026-11-22).
 
 ### Phần còn thiếu và giới hạn
 
-Nơi lưu đã chốt; hosting, dung lượng/chi phí, volume/backup cụ thể còn DEC-014/DEC-016. Xem [ADR media](adr-0002-media-and-online-readiness.md).
+Yêu cầu online ở mốc 17/11 chuyển sang hướng mở rộng tương lai cùng backup/restore vận hành. Xem [ADR-0002](adr-0002-media-and-online-readiness.md) và [ADR-0010](adr-0010-local-runtime-scope.md).
 
 ### Bối cảnh trước xác nhận — lịch sử 11/11/2026
 
@@ -270,7 +324,7 @@ Upload kiểm tra phiên/quyền/CSRF → file tạm → validation/duration →
 
 ### Phần còn thiếu và giới hạn
 
-Phạm vi hợp đồng/vòng đời trên đã ACCEPTED; chi tiết tại [API-28/29](../api/tracks.md#api-28), [media](../architecture/security-and-media.md#file-lifecycle). Chưa chọn timeout/số tiến trình, phiên bản binary/package, cơ chế ghi nhận thao tác đang chạy/hàng đợi dọn và đối chiếu commit (DEC-014/DEC-022). Chính sách phục vụ ảnh/conditional HTTP khác và upload retry còn DEC-017; không tự cấp API cover. Không tuyên bố filesystem và PostgreSQL có transaction chung.
+[API-28/29](../api/tracks.md#api-28) và [vòng đời file](../architecture/security-and-media.md#file-lifecycle) sở hữu hợp đồng. DEC-014 chốt phiên bản, timeout và số tác vụ cho local. Chi tiết thao tác active, hàng đợi dọn và đối chiếu commit thuộc DEC-022. Phục vụ ảnh, conditional HTTP và retry upload thuộc DEC-017.
 
 ### Bối cảnh trước xác nhận — lịch sử 11/11/2026
 
@@ -290,7 +344,7 @@ Cửa sổ trượt: tối thiểu 30 phút từ lượt được tính gần nh
 
 ### Phần còn thiếu và giới hạn
 
-Schema đã có khóa duy nhất theo track/người nghe và index dọn. Giao dịch cạnh tranh và scheduler ở DEC-022. Cookie Guest (tên/thuộc tính/thời hạn), chữ ký/secret, validation numeric listenedSeconds/response đầy đủ ở DEC-014/017. Giữ chính sách track gỡ/chủ khóa và không đếm từ GET/HEAD audio. [Mô hình dữ liệu](../architecture/data-model.md#target-model).
+Schema đã có khóa duy nhất theo track/người nghe và index dọn. Giao dịch cạnh tranh và scheduler thuộc DEC-022. DEC-014 chốt HMAC-SHA256 và khóa riêng cho Guest. Tên/thuộc tính/thời hạn cookie và validation/response ngoài phần đã chốt thuộc DEC-017. Giữ chính sách loại track gỡ/chủ khóa và GET/HEAD không đếm. [Mô hình dữ liệu](../architecture/data-model.md#target-model).
 
 ### Trước lần chấp nhận phương án đơn giản — lịch sử giữ nguyên
 
@@ -322,7 +376,7 @@ Duration do ffprobe đọc, phải hữu hạn và >0, lưu số nguyên giây l
 
 ### Phần còn thiếu và giới hạn
 
-Lựa chọn công cụ/độ chính xác biểu diễn/kiểm tra file/vòng đời cover đã ACCEPTED, xem [ADR-0004](adr-0004-audio-contract-and-file-lifecycle.md). Phiên bản, giới hạn tiến trình và cấu hình ảnh còn DEC-014; trường PATCH nullable, MIME khai báo bất nhất, error code validation, conditional HTTP và lỗi phụ chưa chọn còn DEC-017; schema vật lý/cleanup state còn DEC-022. Chưa cài/chạy binary hoặc kiểm tra duration thực.
+[ADR-0004](adr-0004-audio-contract-and-file-lifecycle.md) ghi công cụ, kiểm tra file, duration và vòng đời cover. [DEC-014](#dec-014) chốt phiên bản và giới hạn local. PATCH nullable, MIME, lỗi validation và conditional HTTP thuộc DEC-017; trạng thái vật lý và cleanup thuộc DEC-022. Bằng chứng chạy ở status.
 
 ### Bối cảnh trước xác nhận — lịch sử 11/11/2026
 
@@ -386,7 +440,7 @@ Cần xác nhận hệ quản trị đích, phiên bản hỗ trợ và môi tr�
 
 ## DEC-014 Toolchain backend và database
 
-Trạng thái: `OPEN`. Xác nhận mới: người dùng trong phiên làm việc, **17/11/2026**; [bằng chứng](#evidence-simple-2026-11-17).
+Trạng thái: `ACCEPTED`. Người dùng trong phiên xác nhận ngày **22/11/2026**. [Bằng chứng](#evidence-local-runtime-2026-11-22), [ADR-0010](adr-0010-local-runtime-scope.md).
 
 ### Kết quả hiện hành đã xác nhận
 
@@ -394,9 +448,16 @@ Giữ Node.js 24/Express 5/JavaScript ESM/npm/PostgreSQL 18; một backend và P
 
 Ngày 18/11/2026 đã chọn Node.js 24.22.3 LTS/PostgreSQL 18.7 làm baseline. Chốt bind local, biến cấu hình, một pool tối đa 5 kết nối với 3 giây chờ, lệnh dev/start/migrate/test/lint, DB thử riêng, phiên bản dependency stable tương thích được ghi trong lockfile và `npm ci` để tái hiện. Chốt issuer/audience, hai secret riêng mỗi môi trường, một khóa JWT mỗi thời điểm và thu hồi phiên khi thay khóa. Hash scrypt lưu chuỗi có phiên bản chứa tham số, salt 16 byte và digest 32 byte. [Xác nhận](#evidence-bootstrap-auth-2026-11-18), [thiết lập local](../development/local-setup.md), [xác thực](../architecture/security-and-media.md).
 
-### Phần còn thiếu và giới hạn
+### Xác nhận bổ sung ngày 22/11/2026
 
-Bootstrap đã khóa dependency và chạy kiểm chứng với môi trường có sẵn. Cách mã hóa tuần tự chuỗi hash, phối hợp thay khóa online và cấu hình hosting/backup còn mở. Multer/Sharp/FFmpeg được bổ sung ở mốc upload, khi đó chốt phiên bản, timeout, concurrency và giới hạn ảnh. Seed demo thuộc DEC-020. [Kết quả bootstrap](../project/status.md#backend-bootstrap-run-2026-11-18).
+- Windows/PowerShell là môi trường local mục tiêu. Backend mặc định bind `127.0.0.1:3000`, tắt `trust proxy`, dùng PostgreSQL và DB kiểm thử riêng. Resend thật dùng cho demo; kiểm thử tích hợp dùng Resend giả lập. [Thiết lập local](../development/local-setup.md).
+- Hash dùng `scrypt$v1$N=32768,r=8,p=3$<salt>$<digest>` với salt và digest base64url. Đổi khóa JWT local theo trình tự dừng backend, thu hồi phiên, thay khóa, khởi động lại. Cookie Guest ký HMAC-SHA256 với khóa riêng; wire cookie theo DEC-017. [Xác thực](../architecture/security-and-media.md).
+- Media dùng Multer 2.5.0, Sharp 0.35.5 và FFmpeg/ffprobe 8.1.3 tại mốc upload. Tối đa hai tác vụ upload/thay cover đồng thời; timeout ffprobe/FFmpeg/Sharp lần lượt 5/120/15 giây. Giữ MP3 30 MiB, JPG/PNG 5 MiB; ảnh đầu vào tối đa 4.096 px mỗi cạnh và 16 triệu pixel, đầu ra tối đa 1.024 px cạnh dài. Vùng tạm và chính thức cùng filesystem. [Media](../architecture/security-and-media.md#upload-kiem-tra-file-va-duration).
+- Triển khai online, backup/restore vận hành và hạn mức OTP theo IP là hướng mở rộng tương lai. Phương án local giữ hạn mức OTP theo email và chọn migration tiến cho phép `request_ip` nhận `NULL`. [DEC-003](#dec-003), [DEC-022](#dec-022).
+
+### Phụ thuộc còn lại
+
+Wire cookie Guest và lỗi media thuộc DEC-017; cơ chế recovery và migration local thuộc DEC-022; seed demo thuộc DEC-020. Phiên bản và giới hạn media ở mức đặc tả cho mốc upload. [Hiện trạng](../project/status.md#local-runtime-decisions-2026-11-22).
 
 ### Trước lần chấp nhận phương án đơn giản — lịch sử giữ nguyên
 
@@ -424,11 +485,11 @@ Trạng thái: `OPEN`. Xác nhận: người dùng trong phiên làm việc, 17/
 
 ### Kết quả đã xác nhận
 
-Mục tiêu API p95 < 500 ms với 1.000 track, 100 user, 200 playlist, 10 người dùng đồng thời; warm-up rồi đo 60 giây, cold start báo riêng. Mốc bắt đầu nghe ≤ 1 giây là phép đo tích hợp riêng. Không còn Critical/High trong phần cam kết; có một lần thử backup/restore thành công.
+Mục tiêu API p95 < 500 ms với 1.000 track, 100 user, 200 playlist, 10 người dùng đồng thời; warm-up rồi đo 60 giây, cold start báo riêng. Mốc bắt đầu nghe ≤ 1 giây là phép đo tích hợp riêng. Không còn Critical/High trong phần cam kết. Tiêu chí diễn tập backup/restore chuyển sang hướng mở rộng tương lai theo [xác nhận local](#evidence-local-runtime-2026-11-22).
 
 ### Phần còn thiếu và giới hạn
 
-Cần cấu hình máy, công cụ, warm-up/request mix/network/file mẫu, điểm bắt đầu-kết thúc đo audio, phân loại lỗi và protocol backup/restore. Chặn nghiệm thu định lượng cuối cùng; không tự ghi PASS.
+Cần cấu hình máy local, công cụ, warm-up/request mix/network/file mẫu, điểm bắt đầu-kết thúc đo audio và phân loại lỗi. Các chi tiết này chặn nghiệm thu định lượng cuối cùng.
 
 ### Bối cảnh trước xác nhận — lịch sử 11/11/2026
 
@@ -470,9 +531,13 @@ Cookie soundwave_session/HttpOnly/SameSite=Lax/path=/; online Secure, HTTP local
 
 Username 2–50 ký tự sau trim và có thể trùng. CSRF token 32 byte ngẫu nhiên và ổn định trong phiên. [Xác nhận ngày 18/11](#evidence-bootstrap-auth-2026-11-18).
 
+Ngày 21/11/2026 chốt cho OTP đăng ký: API-01 trả `201` khi tạo tài khoản, `202` khi bắt đầu lại đủ điều kiện và `409 CONFLICT` khi đăng ký trùng ngoài nhánh bắt đầu lại. API-30 xác minh thành công trả `200`. API-31 tiếp nhận gửi lại trả `202`. Giới hạn gửi trả `429 RATE_LIMITED` kèm `Retry-After`. Lỗi gửi xác định trả `503 SERVICE_UNAVAILABLE`. Khi kết quả gửi chưa rõ, phản hồi tiếp nhận cho biết tài khoản đang chờ xác minh. [Xác nhận 21/11](#evidence-registration-otp-2026-11-21), [API Auth](../api/auth.md#api-01).
+
 ### Phần còn thiếu và giới hạn
 
-Còn mapping status/code từng nhánh, field required/nullable/độ dài chưa nêu, title/channel/form Creator, trailing slash và Trending type shape. CSRF response/headers/xử lý phiên thu hồi, Origin thiếu/sai/phạm vi public mutation, cookie Domain và thuộc tính Guest còn mở. OTP phản hồi chung khi provider lỗi. Media multipart/remove cover/MIME/error phụ/conditional HTTP/chính sách ảnh. Mã lỗi audio giữ theo DEC-009.
+Mốc 21/11/2026 chốt API-30/31 sai mật khẩu trả `400 VALIDATION_ERROR`, API-30 gặp `reserved` trả `409 CONFLICT` kèm `error.details.retryAfterSeconds`, API-32 trả `202` chung và API-33 trả `204` thành công hoặc `400 VALIDATION_ERROR` chung khi xác minh thất bại. Theo [xác nhận local](#evidence-local-runtime-2026-11-22), nhánh `429` theo IP của API-32 chuyển sang mở rộng; API-01/31 giữ `429` cho hạn mức email. [Xác nhận 21/11](#evidence-password-reset-otp-2026-11-21).
+
+[DEC-005](#dec-005) chốt JSON và lỗi chính của Auth, response/header API-39 và phiên thu hồi, trường/validation hồ sơ và kênh Creator, cùng phản hồi/validation playlist. Còn mapping status/code và trường required/nullable/độ dài của các nhánh ngoài phần đã chốt, quy tắc trailing slash và cấu trúc Trending theo type. Origin thiếu/sai, phạm vi public mutation, cookie Domain, thuộc tính Guest và các lỗi CSRF ở request ghi còn mở. Media multipart/remove cover/MIME/error phụ/conditional HTTP/chính sách ảnh. Mã lỗi audio giữ theo DEC-009.
 
 ### Trước lần chấp nhận phương án đơn giản — lịch sử giữ nguyên
 
@@ -524,7 +589,7 @@ Thay gửi mọi ID liên kết bằng toàn bộ ID đang hiển thị qua PATC
 
 ### Phần còn thiếu và giới hạn
 
-Schema đã có FK và unique constraint deferred. Giao dịch khi track/chủ đổi trạng thái còn DEC-022. Response/error và các lần thêm/gỡ lặp còn DEC-005/017. [Mô hình dữ liệu](../architecture/data-model.md#target-model).
+Schema đã có FK và unique constraint deferred. [DEC-005](#dec-005) đã chốt response, validation reorder và status khi thêm/gỡ lặp. Giao dịch khi track/chủ đổi trạng thái còn DEC-022, các lỗi HTTP ngoài phần đã chốt còn DEC-017. [Mô hình dữ liệu](../architecture/data-model.md#target-model).
 
 ### Trước lần chấp nhận phương án đơn giản — lịch sử giữ nguyên
 
@@ -618,7 +683,7 @@ Ngày 20/11/2026, sau khi yêu cầu hoàn thiện database trong một migratio
 
 ### Phần còn thiếu và giới hạn
 
-Còn thứ tự khóa và giao dịch khi API cập nhật nhiều bảng, gồm xét duyệt Creator, track/playlist, cooldown và recovery media. Schema hỗ trợ IP limit bổ sung nếu phạm vi đếm ở DEC-003 cần dữ liệu ngoài `otp_challenges`. Seed demo và fixture còn DEC-020. [Hiện trạng migration](../project/status.md#single-database-migration-2026-11-20).
+Còn thứ tự khóa và giao dịch khi API cập nhật nhiều bảng, gồm xét duyệt Creator, track/playlist, cooldown và recovery media. Theo [xác nhận local](#evidence-local-runtime-2026-11-22), migration tiếp theo bỏ `NOT NULL` của `otp_challenges.request_ip` để local lưu `NULL`. Migration khởi tạo chín bảng hiện vẫn bắt buộc cột này. Bảng đếm IP reset và cơ chế đếm IP thuộc hướng mở rộng tương lai. Seed demo và fixture còn DEC-020. [Mô hình dữ liệu](../architecture/data-model.md#reset-request-ip-storage), [hiện trạng migration](../project/status.md#single-database-migration-2026-11-20).
 
 ### Trước lần chấp nhận phương án đơn giản — lịch sử giữ nguyên
 
